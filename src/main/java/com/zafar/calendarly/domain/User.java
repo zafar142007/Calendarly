@@ -1,10 +1,12 @@
 package com.zafar.calendarly.domain;
 
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 /**
  * User Domain class
@@ -35,6 +37,13 @@ public class User {
    */
   @Column(name = "SALT", nullable = false)
   private String salt;
+
+
+  @OneToMany(mappedBy = "slotOwner")
+  private List<Slot> slotsOwned;
+
+  @OneToMany(mappedBy = "slotBooker")
+  private List<Slot> slotsBooked;
 
   public String getName() {
     return name;
