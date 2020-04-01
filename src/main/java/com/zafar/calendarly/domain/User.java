@@ -15,24 +15,25 @@ public class User {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long id;
+  @Column(name = "ID")
+  private Integer id;
 
-  @Column(nullable = false, unique = true)
+  @Column(name = "USER_EMAIL", nullable = false, unique = true)
   private String email;
 
-  @Column(nullable = false)
+  @Column(name = "USER_NAME", nullable = false)
   private String name;
 
   /**
    * password should be hashed with salt
    */
-  @Column(nullable = false)
+  @Column(name = "HASHED_PASSWORD", nullable = false)
   private char[] hashedPassword;
 
   /**
    * A unique randomly generated string serves as a salt
    */
-  @Column(nullable = false)
+  @Column(name = "SALT", nullable = false)
   private String salt;
 
   public String getName() {
@@ -49,5 +50,21 @@ public class User {
 
   public String getEmail() {
     return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setHashedPassword(char[] hashedPassword) {
+    this.hashedPassword = hashedPassword;
+  }
+
+  public void setSalt(String salt) {
+    this.salt = salt;
   }
 }
