@@ -76,4 +76,13 @@ public class User {
   public void setSalt(String salt) {
     this.salt = salt;
   }
+
+  public User() { }
+
+  public User(String email, String name, char[] hashedPassword, String salt) {
+    this.email = email;
+    this.name = name;
+    this.hashedPassword = hashedPassword;
+    this.salt = salt;
+  }
 }
