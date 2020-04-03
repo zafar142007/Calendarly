@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 
 /**
+ * A service that can handle operations related a user's session
  * @author Zafar Ansari
  */
 @Service

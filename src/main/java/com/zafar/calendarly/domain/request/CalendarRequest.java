@@ -1,4 +1,4 @@
-package com.zafar.calendarly.domain;
+package com.zafar.calendarly.domain.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.zafar.calendarly.service.InMemorySessionProvider.Session;

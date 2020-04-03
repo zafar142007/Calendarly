@@ -21,8 +21,11 @@ public class AppConfig {
   @Autowired
   private SessionService sessionService;
 
+  /**
+   * Authentication is only required for only certain flows. For those flows check for session.
+   */
   @Bean
-  public FilterRegistrationBean<AuthFilter> loggingFilter(){
+  public FilterRegistrationBean<AuthFilter> loggingFilter() {
     FilterRegistrationBean<AuthFilter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new AuthFilter(sessionService));
     registrationBean.addUrlPatterns("/calendarly/slot/*");

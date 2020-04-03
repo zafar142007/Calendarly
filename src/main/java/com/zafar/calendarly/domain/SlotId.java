@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 
 
 /**
+ * Composite key for Slot
  * @author Zafar Ansari
  */
 public class SlotId implements Serializable {

@@ -24,15 +24,15 @@ import org.powermock.modules.junit4.PowerMockRunner;
  * @author Zafar Ansari
  */
 @RunWith(PowerMockRunner.class)
-public class CalendarServiceImplTest {
+public class UserServiceImplTest {
 
-  public static final Logger LOG = LogManager.getLogger(CalendarServiceImplTest.class);
+  public static final Logger LOG = LogManager.getLogger(UserServiceImplTest.class);
 
   @Mock
   private UserRepository userRepository;
 
   @InjectMocks
-  private CalendarService service = new CalendarServiceImpl();
+  private UserService service = new UserServiceImpl();
 
   @Before
   public void init() {

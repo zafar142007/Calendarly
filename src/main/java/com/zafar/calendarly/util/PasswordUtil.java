@@ -19,6 +19,11 @@ public class PasswordUtil {
 
   public static final Logger LOG = LogManager.getLogger(PasswordUtil.class);
 
+  /**
+   * Get a new random readable string of provided length
+   *
+   * @return random string
+   */
   public static String getNewRandomString(int length) {
     SecureRandom random = new SecureRandom();
     byte[] bytes = new byte[length];
@@ -26,6 +31,13 @@ public class PasswordUtil {
     return fromBytes(bytes);
   }
 
+  /**
+   * Get a salted hash of the provided password using the provided salt
+   *
+   * @param password password
+   * @param salt salt
+   * @return salted hash
+   */
   public static String getHashedSaltedPassword(String password, String salt)
       throws NoSuchAlgorithmException, CalendarException {
     MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -49,7 +61,7 @@ public class PasswordUtil {
     StringBuilder s = new StringBuilder();
     for (byte b : bytes) {
       if ((b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9')) {
-        s.append((char)b);
+        s.append((char) b);
       }
     }
 

@@ -1,6 +1,6 @@
 package com.zafar.calendarly.controller;
 
-import com.zafar.calendarly.domain.CalendarResponse;
+import com.zafar.calendarly.domain.response.CalendarResponse;
 import com.zafar.calendarly.exception.CalendarException;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
@@ -25,7 +25,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   public static final Logger log = LogManager.getLogger(GlobalExceptionHandler.class);
 
   /**
-   * All kinds of exceptions raised by the controller will be processed here. If the exception is
+   * All kinds of uncaught exceptions raised by the controller will be processed here. If the exception is
    * {@link CalendarException}, then return corresponding error message and code.
    *
    * @param ex generated exception

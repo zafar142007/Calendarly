@@ -1,4 +1,4 @@
-package com.zafar.calendarly.domain;
+package com.zafar.calendarly.domain.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.Instant;

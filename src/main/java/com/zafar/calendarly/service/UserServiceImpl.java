@@ -13,12 +13,13 @@ import org.springframework.stereotype.Service;
 
 
 /**
+ * Service to handle operations related to User resource
  * @author Zafar Ansari
  */
 @Service
-public class CalendarServiceImpl implements CalendarService {
+public class UserServiceImpl implements UserService {
 
-  public static final Logger LOG = LogManager.getLogger(CalendarServiceImpl.class);
+  public static final Logger LOG = LogManager.getLogger(UserServiceImpl.class);
 
   @Autowired
   private UserRepository userRepository;

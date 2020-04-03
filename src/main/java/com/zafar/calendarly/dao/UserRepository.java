@@ -6,7 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 
 
 /**
- * Basic Dao supporting CRUD operations. Default implementation provided by Spring
+ * Basic Dao for User table supporting CRUD operations. Default implementation provided by Spring.
  * @author Zafar Ansari
  */
 public interface UserRepository extends CrudRepository<User, Long> {

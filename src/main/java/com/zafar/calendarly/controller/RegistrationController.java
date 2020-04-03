@@ -1,11 +1,11 @@
 package com.zafar.calendarly.controller;
 
-import com.zafar.calendarly.domain.LoginUserResponse;
-import com.zafar.calendarly.domain.RegisterUserRequest;
-import com.zafar.calendarly.domain.RegisterUserResponse;
-import com.zafar.calendarly.domain.UserRequest;
+import com.zafar.calendarly.domain.response.LoginUserResponse;
+import com.zafar.calendarly.domain.request.RegisterUserRequest;
+import com.zafar.calendarly.domain.response.RegisterUserResponse;
+import com.zafar.calendarly.domain.request.UserRequest;
 import com.zafar.calendarly.exception.CalendarException;
-import com.zafar.calendarly.service.CalendarService;
+import com.zafar.calendarly.service.UserService;
 import com.zafar.calendarly.service.SessionService;
 import com.zafar.calendarly.util.CalendarConstants;
 import org.apache.logging.log4j.LogManager;
@@ -29,7 +29,7 @@ public class RegistrationController {
   public static final Logger LOG = LogManager.getLogger(RegistrationController.class);
 
   @Autowired
-  private CalendarService calendarService;
+  private UserService calendarService;
 
   @Autowired
   private SessionService sessionService;

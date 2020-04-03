@@ -1,6 +1,7 @@
 package com.zafar.calendarly.util;
 
 /**
+ * Constants of the application
  * @author Zafar Ansari
  */
 public interface CalendarConstants {

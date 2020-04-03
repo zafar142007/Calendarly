@@ -1,4 +1,4 @@
-package com.zafar.calendarly.domain;
+package com.zafar.calendarly.domain.response;
 
 /**
  * @author Zafar Ansari

@@ -1,9 +1,9 @@
 package com.zafar.calendarly.controller;
 
-import com.zafar.calendarly.domain.BookSlotsRequest;
-import com.zafar.calendarly.domain.CalendarResponse;
-import com.zafar.calendarly.domain.SlotsRequest;
-import com.zafar.calendarly.domain.SlotsResponse;
+import com.zafar.calendarly.domain.request.BookSlotsRequest;
+import com.zafar.calendarly.domain.response.CalendarResponse;
+import com.zafar.calendarly.domain.request.SlotsRequest;
+import com.zafar.calendarly.domain.response.SlotsResponse;
 import com.zafar.calendarly.exception.CalendarException;
 import com.zafar.calendarly.service.SlotsService;
 import com.zafar.calendarly.util.CalendarConstants;
