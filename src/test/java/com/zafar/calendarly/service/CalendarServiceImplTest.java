@@ -3,6 +3,7 @@ package com.zafar.calendarly.service;
 import com.zafar.calendarly.dao.UserRepository;
 import com.zafar.calendarly.domain.User;
 import com.zafar.calendarly.exception.CalendarException;
+import com.zafar.calendarly.util.CalendarConstants;
 import com.zafar.calendarly.util.PasswordUtil;
 import java.util.Arrays;
 import org.apache.logging.log4j.LogManager;
@@ -40,7 +41,7 @@ public class CalendarServiceImplTest {
 
   @Test
   public void testIsValidUser() throws Exception {
-    String salt = PasswordUtil.getNewSalt();
+    String salt = PasswordUtil.getNewRandomString(CalendarConstants.SALT_LENGTH);
     Mockito.when(userRepository.findByEmail(Mockito.any()))
         .thenReturn(Arrays.asList(new User("mock", "mockName",
             PasswordUtil.getHashedSaltedPassword("mock", salt).toCharArray(), salt)));

@@ -79,10 +79,22 @@ public class User {
 
   public User() { }
 
+  public List<Slot> getSlotsOwned() {
+    return slotsOwned;
+  }
+
+  public List<Slot> getSlotsBooked() {
+    return slotsBooked;
+  }
+
   public User(String email, String name, char[] hashedPassword, String salt) {
     this.email = email;
     this.name = name;
     this.hashedPassword = hashedPassword;
     this.salt = salt;
+  }
+
+  public Integer getId() {
+    return id;
   }
 }

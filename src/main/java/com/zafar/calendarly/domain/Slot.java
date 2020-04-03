@@ -6,8 +6,11 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.PrimaryKeyJoinColumns;
 
 
 /**
@@ -16,13 +19,14 @@ import javax.persistence.ManyToOne;
  * @author Zafar Ansari
  */
 @Entity
+@IdClass(SlotId.class)
 public class Slot implements Serializable {
 
-  private final static long serialVersionUID = 0l;
+  private final static long serialVersionUID = 1l;
 
   @Id
-  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "SLOT_OWNER_ID", nullable = false)
+  @ManyToOne(fetch = FetchType.LAZY)
   private User slotOwner;
 
   @Id
@@ -33,5 +37,14 @@ public class Slot implements Serializable {
   @JoinColumn(name = "SLOT_BOOKED_BY", nullable = true)
   private User slotBooker;
 
+  public Slot(User slotOwner, Timestamp slotStartTimestamp,
+      User slotBooker) {
+    this.slotOwner = slotOwner;
+    this.slotStartTimestamp = slotStartTimestamp;
+    this.slotBooker = slotBooker;
+  }
+
+  public Slot() {
+  }
 
 }

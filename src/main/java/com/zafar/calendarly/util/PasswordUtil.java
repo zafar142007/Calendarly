@@ -12,15 +12,16 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Util methods for password and salt manipulation
+ *
  * @author Zafar Ansari
  */
 public class PasswordUtil {
 
   public static final Logger LOG = LogManager.getLogger(PasswordUtil.class);
 
-  public static String getNewSalt() {
+  public static String getNewRandomString(int length) {
     SecureRandom random = new SecureRandom();
-    byte[] bytes = new byte[CalendarConstants.SALT_LENGTH];
+    byte[] bytes = new byte[length];
     random.nextBytes(bytes);
     return fromBytes(bytes);
   }
@@ -45,6 +46,13 @@ public class PasswordUtil {
   }
 
   private static String fromBytes(byte[] bytes) {
-    return new String(bytes, StandardCharsets.UTF_8);
+    StringBuilder s = new StringBuilder();
+    for (byte b : bytes) {
+      if ((b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9')) {
+        s.append((char)b);
+      }
+    }
+
+    return s.toString();
   }
 }

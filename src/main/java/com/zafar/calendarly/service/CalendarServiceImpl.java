@@ -3,6 +3,7 @@ package com.zafar.calendarly.service;
 import com.zafar.calendarly.dao.UserRepository;
 import com.zafar.calendarly.domain.User;
 import com.zafar.calendarly.exception.CalendarException;
+import com.zafar.calendarly.util.CalendarConstants;
 import com.zafar.calendarly.util.PasswordUtil;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
@@ -25,7 +26,7 @@ public class CalendarServiceImpl implements CalendarService {
   public boolean registerUser(String userEmail, String password, String userName)
       throws CalendarException {
     try {
-      String salt = PasswordUtil.getNewSalt();
+      String salt = PasswordUtil.getNewRandomString(CalendarConstants.SALT_LENGTH);
       User user = new User(userEmail, userName,
           PasswordUtil.getHashedSaltedPassword(password, salt).toCharArray(), salt);
       userRepository.save(user);

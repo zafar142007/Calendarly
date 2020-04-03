@@ -17,7 +17,7 @@ public class PasswordUtilTest {
 
   @Test
   public void testGetHashedSaltedPassword() throws CalendarException, NoSuchAlgorithmException {
-    String salt = PasswordUtil.getNewSalt();
+    String salt = PasswordUtil.getNewRandomString(CalendarConstants.SALT_LENGTH);
     String pass1 = PasswordUtil.getHashedSaltedPassword("pass", salt);
     String pass2 = PasswordUtil.getHashedSaltedPassword("pass", salt);
     Assert.assertEquals(pass1, pass2);

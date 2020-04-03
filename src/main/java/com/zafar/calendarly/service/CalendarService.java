@@ -5,7 +5,7 @@ import com.zafar.calendarly.exception.CalendarException;
 /**
  * @author Zafar Ansari
  */
-interface CalendarService {
+public interface CalendarService {
 
   boolean registerUser(String userEmail, String password, String userName)
       throws CalendarException;
