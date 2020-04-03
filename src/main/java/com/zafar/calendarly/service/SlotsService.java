@@ -2,6 +2,8 @@ package com.zafar.calendarly.service;
 
 import com.zafar.calendarly.exception.CalendarException;
 import java.time.Instant;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,8 +33,8 @@ public interface SlotsService {
   /**
    * Get available slots of the given user between the provided times
    *
-   * @return set of slots
+   * @return list of slots
    */
-  Set<Instant> getSlots(String email, Instant from, Instant to)
+  List<Date> getSlots(String email, Instant from, Instant to)
       throws CalendarException;
 }

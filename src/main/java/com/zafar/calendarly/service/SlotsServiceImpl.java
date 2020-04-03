@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +38,9 @@ public class SlotsServiceImpl implements SlotsService {
   @Autowired
   private SlotRepository slotRepository;
 
+  @Autowired
+  private ValidationService validationService;
+
   @Override
   public void addSlots(final Instant[] slots) throws CalendarException {
     Session session = SessionContainer.getSessionThreadLocal().get();
@@ -47,7 +51,11 @@ public class SlotsServiceImpl implements SlotsService {
           User usr = users.get(0);
           List<Slot> slotList = new ArrayList<>();
           for (Instant slot : slots) {
-            slotList.add(new Slot(usr, new Timestamp(slot.toEpochMilli()), null));
+            if (validationService.isInFuture(slot)) {
+              slotList.add(new Slot(usr, new Timestamp(slot.toEpochMilli()), null));
+            } else {
+              LOG.warn("Ignoring slot {} in past", slot);
+            }
           }
           slotRepository.saveAll(slotList);
         }
@@ -61,21 +69,21 @@ public class SlotsServiceImpl implements SlotsService {
     }
   }
 
-  private void getAvailableSlots(Set<Instant> result, Instant from, Instant to,
+  private void getAvailableSlots(List<Date> result, Instant from, Instant to,
       List<Slot> availableSlots) {
     for (Slot slot : availableSlots) {
       Instant slotInstant = slot.getSlotStartTimestamp().toInstant();
       if (slot.getSlotBooker() == null && slotInstant.isAfter(from) && slotInstant.isBefore(to)) {
-        result.add(slotInstant);
+        result.add(new Date(slotInstant.toEpochMilli()));
       }
     }
   }
 
   @Override
-  public Set<Instant> getSlots(String email, Instant from, Instant to)
+  public List<Date> getSlots(String email, Instant from, Instant to)
       throws CalendarException {
     Session session = SessionContainer.getSessionThreadLocal().get();
-    Set<Instant> successfulSlots = new HashSet<>();
+    List<Date> successfulSlots = new ArrayList<>();
     try {
       if (session != null) {
         List<User> userList = userRepository.findByEmail(email);
@@ -85,7 +93,7 @@ public class SlotsServiceImpl implements SlotsService {
           getAvailableSlots(successfulSlots, from, to, availableSlots);
         } else {
           LOG.error("Bookee user {} not found", email);
-          throw new CalendarException("No user found to book");
+          throw new CalendarException("No user found to get slots");
         }
       } else {
         LOG.error("session invalid");

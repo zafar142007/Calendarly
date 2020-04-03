@@ -25,8 +25,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   public static final Logger log = LogManager.getLogger(GlobalExceptionHandler.class);
 
   /**
-   * All kinds of uncaught exceptions raised by the controller will be processed here. If the exception is
-   * {@link CalendarException}, then return corresponding error message and code.
+   * All kinds of uncaught exceptions raised by the controller will be processed here. If the
+   * exception is {@link CalendarException}, then return corresponding error message and code.
    *
    * @param ex generated exception
    * @return json response
@@ -40,7 +40,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     CalendarResponse response = null;
     if (ex instanceof CalendarException) {
-      response = new CalendarResponse(((CalendarException) ex).getMessage());
+      response = new CalendarResponse(ex.getMessage());
     } else {
       response = new CalendarResponse("Some error occurred.");
     }

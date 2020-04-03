@@ -9,11 +9,9 @@ import com.zafar.calendarly.exception.CalendarException;
 import com.zafar.calendarly.service.SlotsService;
 import com.zafar.calendarly.util.CalendarConstants;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,12 +82,11 @@ public class SlotsController {
   @PostMapping("/get")
   public CalendarResponse getSlots(@RequestBody GetSlotRequest slots) throws CalendarException {
     SlotsResponse<List<Date>> response = null;
-    List<Date> list = new ArrayList<>();
+    List<Date> list = null;
     try {
-      Set<Instant> result = slotsService
+      list = slotsService
           .getSlots(slots.getEmailAddressBookee(), slots.getFromTime().toInstant(),
               slots.getToTime().toInstant());
-      result.stream().forEach(res -> list.add(new Date(res.toEpochMilli())));
       response = new SlotsResponse<>(CalendarConstants.OK_MESSAGE, list);
     } catch (CalendarException e) {
       LOG.error("Some error occurred", e);
