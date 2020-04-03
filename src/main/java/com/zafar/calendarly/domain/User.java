@@ -10,6 +10,7 @@ import javax.persistence.OneToMany;
 
 /**
  * User Domain class
+ *
  * @author Zafar Ansari
  */
 @Entity
@@ -77,7 +78,8 @@ public class User {
     this.salt = salt;
   }
 
-  public User() { }
+  public User() {
+  }
 
   public List<Slot> getSlotsOwned() {
     return slotsOwned;

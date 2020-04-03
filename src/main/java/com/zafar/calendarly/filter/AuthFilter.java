@@ -18,6 +18,10 @@ import org.springframework.core.annotation.Order;
 
 
 /**
+ * Filter which checks for the logged-in user by checking the validity of the session by the
+ * provided session-id key in the header. This filter is only applicable to certain flows of the
+ * application.
+ *
  * @author Zafar Ansari
  */
 @Order(2)
@@ -30,6 +34,9 @@ public class AuthFilter implements Filter {
     this.sessionService = sessionService;
   }
 
+  /**
+   * Filter by checking validity of the session. If valid, process the request, else send 401.
+   */
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
@@ -40,7 +47,7 @@ public class AuthFilter implements Filter {
         req.getRequestURI());
     String sessionId = req.getHeader(CalendarConstants.SESSION_ID_HEADER_NAME);
     Session session = null;
-    if ((session = sessionService.getSession(sessionId)) != null) {
+    if (sessionId != null && (session = sessionService.getSession(sessionId)) != null) {
       LOG.info("Session {} is valid", sessionId);
       SessionContainer.getSessionThreadLocal().set(session);
       chain.doFilter(request, response);

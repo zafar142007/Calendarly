@@ -5,6 +5,7 @@ import java.time.Instant;
 
 
 /**
+ * Generic response class for all APIs
  * @author Zafar Ansari
  */
 public class CalendarResponse {

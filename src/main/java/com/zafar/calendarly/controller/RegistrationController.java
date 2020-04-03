@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 /**
+ * Controller to handle operations related to user resource
+ *
  * @author Zafar Ansari
  */
 @RestController
@@ -32,6 +34,11 @@ public class RegistrationController {
   @Autowired
   private SessionService sessionService;
 
+  /**
+   * Create a new User if not already existing.
+   *
+   * @param request the details of the user
+   */
   @PostMapping("/signup")
   public RegisterUserResponse registerUser(@RequestBody RegisterUserRequest request) {
     RegisterUserResponse response = null;
@@ -50,6 +57,10 @@ public class RegistrationController {
     return response;
   }
 
+  /**
+   * Login a user with the given details. If successful return a session-id to be used for
+   * authenticating future requests.
+   */
   @PostMapping("/login")
   public LoginUserResponse loginUser(@RequestBody UserRequest request) {
     LoginUserResponse response = null;

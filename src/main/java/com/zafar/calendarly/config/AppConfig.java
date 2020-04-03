@@ -25,7 +25,7 @@ public class AppConfig {
   public FilterRegistrationBean<AuthFilter> loggingFilter(){
     FilterRegistrationBean<AuthFilter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new AuthFilter(sessionService));
-    registrationBean.addUrlPatterns("/calendarly/slot/add");
+    registrationBean.addUrlPatterns("/calendarly/slot/*");
     return registrationBean;
   }
 

@@ -11,8 +11,8 @@ public interface CalendarConstants {
   Integer SALT_LENGTH = 64;
 
   Double VERSION = 1.0;
-  Long SESSION_EXPIRY_INTERVAL_MS = 300000l;
-  int SESSION_ID_LENGTH = 16;
+  Long SESSION_EXPIRY_INTERVAL_MS = 1800000l;
+  int SESSION_ID_LENGTH = 64;
   String FAILED = "Failure";
   String SESSION_ID_HEADER_NAME = "session-id";
 }

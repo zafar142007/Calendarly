@@ -9,7 +9,12 @@ import com.zafar.calendarly.service.InMemorySessionProvider.Session;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +22,8 @@ import org.springframework.stereotype.Service;
 
 
 /**
+ * Service to manipulate slot resource
+ *
  * @author Zafar Ansari
  */
 @Service
@@ -31,7 +38,7 @@ public class SlotsServiceImpl implements SlotsService {
   private SlotRepository slotRepository;
 
   @Override
-  public void addSlots(Instant[] slots) throws CalendarException {
+  public void addSlots(final Instant[] slots) throws CalendarException {
     Session session = SessionContainer.getSessionThreadLocal().get();
     try {
       if (session != null) {
@@ -45,10 +52,76 @@ public class SlotsServiceImpl implements SlotsService {
           slotRepository.saveAll(slotList);
         }
       } else {
+        LOG.error("session invalid");
         throw new CalendarException("Invalid session");
       }
     } catch (Exception e) {
+      LOG.error("Could not save slots", e);
       throw new CalendarException("Could not save slots", e);
     }
   }
+
+  @Override
+  public Map<Instant, Boolean> bookSlots(final Instant[] slots, String emailBookee)
+      throws CalendarException {
+    Session session = SessionContainer.getSessionThreadLocal().get();
+    Set<Instant> successfulSlots = new HashSet<>();
+    try {
+      if (session != null) {
+        List<User> users = userRepository.findByEmail(session.getEmail());
+        if (users != null && users.size() == 1) {
+          User booker = users.get(0);
+          List<User> bookeeList = userRepository.findByEmail(emailBookee);
+          if (bookeeList != null && bookeeList.size() > 0) {
+            User bookee = bookeeList.get(0);
+            Set<Instant> requestedSlots = new HashSet<>(Arrays.asList(slots));
+            List<Slot> availableSlots = bookee.getSlotsOwned();
+            book(successfulSlots, booker, requestedSlots, availableSlots);
+          } else {
+            LOG.error("Bookee user {} not found", emailBookee);
+            throw new CalendarException("No user found to book");
+          }
+        }
+      } else {
+        LOG.error("session invalid");
+        throw new CalendarException("Invalid session");
+      }
+    } catch (CalendarException e) {
+      LOG.error("some error occurred", e);
+      throw e;
+    } catch (Exception e) {
+      LOG.error("Could not book slots", e);
+      throw new CalendarException("Could not book slots", e);
+    }
+    return prepareResult(slots, successfulSlots);
+  }
+
+  private Map<Instant, Boolean> prepareResult(Instant[] slots, Set<Instant> successfulSlots) {
+    Map<Instant, Boolean> result = new HashMap<>();
+    for (Instant ins : slots) {
+      if (successfulSlots.contains(ins)) {
+        result.put(ins, true);
+      } else {
+        result.put(ins, false);
+      }
+    }
+    return result;
+  }
+
+  private void book(Set<Instant> successfulSlots, User booker, Set<Instant> requestedSlots,
+      List<Slot> availableSlots) {
+    for (Slot availableSlot : availableSlots) {
+      if (availableSlot.getSlotBooker() == null && requestedSlots
+          .contains(availableSlot.getSlotStartTimestamp().toInstant())) {
+        availableSlot.setSlotBooker(booker);
+        try {
+          slotRepository.save(availableSlot);
+          successfulSlots.add(availableSlot.getSlotStartTimestamp().toInstant());
+        } catch (Exception e) {
+          LOG.error("Error while booking slot {}", availableSlot);
+        }
+      }
+    }
+  }
+
 }

@@ -47,4 +47,27 @@ public class Slot implements Serializable {
   public Slot() {
   }
 
+  public User getSlotOwner() {
+    return slotOwner;
+  }
+
+  public void setSlotOwner(User slotOwner) {
+    this.slotOwner = slotOwner;
+  }
+
+  public Timestamp getSlotStartTimestamp() {
+    return slotStartTimestamp;
+  }
+
+  public void setSlotStartTimestamp(Timestamp slotStartTimestamp) {
+    this.slotStartTimestamp = slotStartTimestamp;
+  }
+
+  public User getSlotBooker() {
+    return slotBooker;
+  }
+
+  public void setSlotBooker(User slotBooker) {
+    this.slotBooker = slotBooker;
+  }
 }
