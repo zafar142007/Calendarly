@@ -5,7 +5,7 @@ package com.zafar.calendarly.domain.response;
  */
 public class RegisterUserResponse extends CalendarResponse {
 
-  boolean isUserRegistered = false;
+  private boolean isUserRegistered = false;
 
   public RegisterUserResponse(String message, boolean isUserRegistered) {
     super(message);
@@ -14,5 +14,9 @@ public class RegisterUserResponse extends CalendarResponse {
 
   public boolean isUserRegistered() {
     return isUserRegistered;
+  }
+
+  public void setUserRegistered(boolean userRegistered) {
+    isUserRegistered = userRegistered;
   }
 }
