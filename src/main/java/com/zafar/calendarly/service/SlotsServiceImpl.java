@@ -45,7 +45,7 @@ public class SlotsServiceImpl implements SlotsService {
   public void addSlots(final Instant[] slots) throws CalendarException {
     Session session = SessionContainer.getSessionThreadLocal().get();
     try {
-      if (session != null) {
+      if (session != null && slots != null) {
         List<User> users = userRepository.findByEmail(session.getEmail());
         if (users != null && users.size() == 1) {
           User usr = users.get(0);
@@ -58,11 +58,17 @@ public class SlotsServiceImpl implements SlotsService {
             }
           }
           slotRepository.saveAll(slotList);
+        } else {
+          LOG.error("user not found");
+          throw new CalendarException("user not found");
         }
       } else {
         LOG.error("session invalid");
         throw new CalendarException("Invalid session");
       }
+    } catch (CalendarException e) {
+      LOG.error("some error occurred", e);
+      throw e;
     } catch (Exception e) {
       LOG.error("Could not save slots", e);
       throw new CalendarException("Could not save slots", e);
@@ -130,6 +136,9 @@ public class SlotsServiceImpl implements SlotsService {
             LOG.error("Bookee user {} not found", emailBookee);
             throw new CalendarException("No user found to book");
           }
+        } else {
+          LOG.error("user not found");
+          throw new CalendarException("user not found");
         }
       } else {
         LOG.error("session invalid");

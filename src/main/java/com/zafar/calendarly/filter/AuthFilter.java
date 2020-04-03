@@ -33,6 +33,9 @@ public class AuthFilter implements Filter {
   private SessionService sessionService;
   private ObjectMapper mapper = new ObjectMapper();
 
+  public AuthFilter() {
+  }
+
   public AuthFilter(SessionService sessionService) {
     this.sessionService = sessionService;
   }

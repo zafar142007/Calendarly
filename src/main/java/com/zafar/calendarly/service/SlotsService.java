@@ -33,7 +33,7 @@ public interface SlotsService {
   /**
    * Get available slots of the given user between the provided times
    *
-   * @return list of slots
+   * @return list of available slots
    */
   List<Date> getSlots(String email, Instant from, Instant to)
       throws CalendarException;

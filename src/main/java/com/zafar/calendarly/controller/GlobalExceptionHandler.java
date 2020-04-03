@@ -2,6 +2,7 @@ package com.zafar.calendarly.controller;
 
 import com.zafar.calendarly.domain.response.CalendarResponse;
 import com.zafar.calendarly.exception.CalendarException;
+import com.zafar.calendarly.util.CalendarConstants;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,7 +43,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     if (ex instanceof CalendarException) {
       response = new CalendarResponse(ex.getMessage());
     } else {
-      response = new CalendarResponse("Some error occurred.");
+      response = new CalendarResponse(CalendarConstants.ERROR_MESSAGE);
     }
     httpServletResponse.setStatus(httpStatus);
     log.info("finished exception handling for exception {}", ex.getMessage());

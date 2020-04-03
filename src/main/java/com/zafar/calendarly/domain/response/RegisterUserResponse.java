@@ -11,4 +11,8 @@ public class RegisterUserResponse extends CalendarResponse {
     super(message);
     this.isUserRegistered = isUserRegistered;
   }
+
+  public boolean isUserRegistered() {
+    return isUserRegistered;
+  }
 }
