@@ -8,6 +8,7 @@ package com.zafar.calendarly.util;
 public interface CalendarConstants {
 
   String ERROR_MESSAGE = "Some error occurred";
+  String UNAUTH_MESSAGE = "Unauthorized";
   String OK_MESSAGE = "Success";
 
   Integer SALT_LENGTH = 64;

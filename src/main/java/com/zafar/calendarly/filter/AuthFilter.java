@@ -1,5 +1,7 @@
 package com.zafar.calendarly.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zafar.calendarly.domain.response.CalendarResponse;
 import com.zafar.calendarly.service.InMemorySessionProvider.Session;
 import com.zafar.calendarly.service.SessionContainer;
 import com.zafar.calendarly.service.SessionService;
@@ -29,6 +31,7 @@ public class AuthFilter implements Filter {
 
   public static final Logger LOG = LogManager.getLogger(AuthFilter.class);
   private SessionService sessionService;
+  private ObjectMapper mapper = new ObjectMapper();
 
   public AuthFilter(SessionService sessionService) {
     this.sessionService = sessionService;
@@ -55,6 +58,10 @@ public class AuthFilter implements Filter {
       LOG.info("Session {} is invalid", sessionId);
       SessionContainer.getSessionThreadLocal().set(null);
       res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      res.setContentType("application/json");
+      res.getWriter()
+          .write(mapper.writeValueAsString(new CalendarResponse(CalendarConstants.UNAUTH_MESSAGE)));
+      res.getWriter().flush();
     }
   }
 }

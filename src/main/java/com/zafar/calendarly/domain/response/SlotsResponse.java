@@ -8,15 +8,15 @@ import java.util.Map;
  * Slots response
  * @author Zafar Ansari
  */
-public class SlotsResponse extends CalendarResponse {
+public class SlotsResponse<T> extends CalendarResponse {
 
   /**
    * Status of the slots.
    */
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd@HH:mm:ss.SSSZ")
-  private Map<Instant, Boolean> result;
+  private T result;
 
-  public SlotsResponse(String message, Map<Instant, Boolean> result) {
+  public SlotsResponse(String message, T result) {
     super(message);
     this.result = result;
   }
@@ -24,11 +24,11 @@ public class SlotsResponse extends CalendarResponse {
   public SlotsResponse() {
   }
 
-  public Map<Instant, Boolean> getResult() {
+  public T getResult() {
     return result;
   }
 
-  public void setResult(Map<Instant, Boolean> result) {
+  public void setResult(T result) {
     this.result = result;
   }
 

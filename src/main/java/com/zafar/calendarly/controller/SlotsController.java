@@ -1,14 +1,19 @@
 package com.zafar.calendarly.controller;
 
 import com.zafar.calendarly.domain.request.BookSlotsRequest;
-import com.zafar.calendarly.domain.response.CalendarResponse;
+import com.zafar.calendarly.domain.request.GetSlotRequest;
 import com.zafar.calendarly.domain.request.SlotsRequest;
+import com.zafar.calendarly.domain.response.CalendarResponse;
 import com.zafar.calendarly.domain.response.SlotsResponse;
 import com.zafar.calendarly.exception.CalendarException;
 import com.zafar.calendarly.service.SlotsService;
 import com.zafar.calendarly.util.CalendarConstants;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,20 +66,39 @@ public class SlotsController {
    */
   @PostMapping("/book")
   public CalendarResponse bookSlots(@RequestBody BookSlotsRequest slots) throws CalendarException {
-    SlotsResponse response = null;
+    SlotsResponse<Map<Instant, Boolean>> response = null;
     try {
       Map<Instant, Boolean> result = slotsService
           .bookSlots(slots.getSlots(), slots.getEmailAddressBookee());
-      response = new SlotsResponse(CalendarConstants.OK_MESSAGE, result);
+      response = new SlotsResponse<>(CalendarConstants.OK_MESSAGE, result);
     } catch (CalendarException e) {
       LOG.error("Some error occurred", e);
-      response = new SlotsResponse(e.getMessage(), null);
+      response = new SlotsResponse<>(e.getMessage(), null);
     } catch (Exception e) {
       LOG.error("Some error occurred", e);
-      response = new SlotsResponse(CalendarConstants.ERROR_MESSAGE, null);
+      response = new SlotsResponse<>(CalendarConstants.ERROR_MESSAGE, null);
     }
     return response;
   }
 
+  @PostMapping("/get")
+  public CalendarResponse getSlots(@RequestBody GetSlotRequest slots) throws CalendarException {
+    SlotsResponse<List<Date>> response = null;
+    List<Date> list = new ArrayList<>();
+    try {
+      Set<Instant> result = slotsService
+          .getSlots(slots.getEmailAddressBookee(), slots.getFromTime().toInstant(),
+              slots.getToTime().toInstant());
+      result.stream().forEach(res -> list.add(new Date(res.toEpochMilli())));
+      response = new SlotsResponse<>(CalendarConstants.OK_MESSAGE, list);
+    } catch (CalendarException e) {
+      LOG.error("Some error occurred", e);
+      response = new SlotsResponse<>(e.getMessage(), null);
+    } catch (Exception e) {
+      LOG.error("Some error occurred", e);
+      response = new SlotsResponse<>(CalendarConstants.ERROR_MESSAGE, null);
+    }
+    return response;
+  }
 
 }

@@ -1,7 +1,8 @@
 package com.zafar.calendarly.domain.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.zafar.calendarly.util.CalendarConstants;
-import java.time.Instant;
+import java.util.Date;
 
 
 /**
@@ -11,7 +12,8 @@ import java.time.Instant;
  */
 public class CalendarResponse {
 
-  private Instant timestamp = Instant.now();
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd@HH:mm:ss.SSSZ")
+  private Date timestamp = new Date();
 
   private Double version = CalendarConstants.VERSION;
 
@@ -24,7 +26,7 @@ public class CalendarResponse {
     this.message = message;
   }
 
-  public Instant getTimestamp() {
+  public Date getTimestamp() {
     return timestamp;
   }
 

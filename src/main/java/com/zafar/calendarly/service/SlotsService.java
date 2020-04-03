@@ -3,6 +3,7 @@ package com.zafar.calendarly.service;
 import com.zafar.calendarly.exception.CalendarException;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Service to manipulate slot resource
@@ -26,4 +27,12 @@ public interface SlotsService {
    * @return a map indicating which slots were successfully booked, and not booked
    */
   Map<Instant, Boolean> bookSlots(Instant[] slots, String emailBookee) throws CalendarException;
+
+  /**
+   * Get available slots of the given user between the provided times
+   *
+   * @return set of slots
+   */
+  Set<Instant> getSlots(String email, Instant from, Instant to)
+      throws CalendarException;
 }

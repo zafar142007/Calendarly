@@ -61,6 +61,47 @@ public class SlotsServiceImpl implements SlotsService {
     }
   }
 
+  private void getAvailableSlots(Set<Instant> result, Instant from, Instant to,
+      List<Slot> availableSlots) {
+    for (Slot slot : availableSlots) {
+      Instant slotInstant = slot.getSlotStartTimestamp().toInstant();
+      if (slot.getSlotBooker() == null && slotInstant.isAfter(from) && slotInstant.isBefore(to)) {
+        result.add(slotInstant);
+      }
+    }
+  }
+
+  @Override
+  public Set<Instant> getSlots(String email, Instant from, Instant to)
+      throws CalendarException {
+    Session session = SessionContainer.getSessionThreadLocal().get();
+    Set<Instant> successfulSlots = new HashSet<>();
+    try {
+      if (session != null) {
+        List<User> userList = userRepository.findByEmail(email);
+        if (userList != null && userList.size() > 0) {
+          User user = userList.get(0);
+          List<Slot> availableSlots = user.getSlotsOwned();
+          getAvailableSlots(successfulSlots, from, to, availableSlots);
+        } else {
+          LOG.error("Bookee user {} not found", email);
+          throw new CalendarException("No user found to book");
+        }
+      } else {
+        LOG.error("session invalid");
+        throw new CalendarException("Invalid session");
+      }
+    } catch (CalendarException e) {
+      LOG.error("some error occurred", e);
+      throw e;
+    } catch (Exception e) {
+      LOG.error("Could not get slots", e);
+      throw new CalendarException("Could not get slots", e);
+    }
+    return successfulSlots;
+  }
+
+
   @Override
   public Map<Instant, Boolean> bookSlots(final Instant[] slots, String emailBookee)
       throws CalendarException {

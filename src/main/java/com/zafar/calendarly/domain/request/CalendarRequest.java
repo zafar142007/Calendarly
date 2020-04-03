@@ -1,11 +1,10 @@
 package com.zafar.calendarly.domain.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.zafar.calendarly.service.InMemorySessionProvider.Session;
-import java.time.Instant;
 import java.util.Date;
 
 /**
+ * Generic request for all APIs
  * @author Zafar Ansari
  */
 public class CalendarRequest {
@@ -17,10 +16,6 @@ public class CalendarRequest {
 
   public Date getTimestamp() {
     return timestamp;
-  }
-
-  public void setTimestamp(Date timestamp) {
-    this.timestamp = timestamp;
   }
 
   public double getVersion() {
