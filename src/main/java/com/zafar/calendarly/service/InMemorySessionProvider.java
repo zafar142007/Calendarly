@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +25,8 @@ public class InMemorySessionProvider implements SessionProvider {
   private Map<String, Session> sessionStore = new ConcurrentHashMap<>();
   private final ReentrantReadWriteLock monitor = new ReentrantReadWriteLock();
 
-  private final Long expiryInterval = CalendarConstants.SESSION_EXPIRY_INTERVAL_MS;
+  @Value(CalendarConstants.SESSION_EXPIRY_INTERVAL_MS)
+  private Long expiryInterval;
 
   @Override
   public String newSession(String email) {
@@ -41,7 +43,7 @@ public class InMemorySessionProvider implements SessionProvider {
   public Session getSession(String sessionId) {
     monitor.readLock().lock();
     Session session = sessionStore.get(sessionId);
-    if (session!=null && isExpired(session.getTimestamp())) {
+    if (session != null && isExpired(session.getTimestamp())) {
       sessionStore.remove(sessionId);
       session = null;
     }
