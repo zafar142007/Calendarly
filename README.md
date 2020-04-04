@@ -104,6 +104,7 @@ Response:
 4. Get slots
 
 We provide the session id got in the login step as a header, a target user's email address, and a range of timestamps between which we want to view the available slots for the target user. If authenticated, available and not in the past, the slots are returned for the target user.
+
 Request:
 
 ```
@@ -172,7 +173,7 @@ Response:
 
 6. Health
 
-Indicates if the application is UP or not.
+Indicates if the application is up or not.
 
 ```
 curl --location --request GET 'https://calendarly-app.herokuapp.com/calendarly/health
