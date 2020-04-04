@@ -21,9 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * In order to book a slot, it is required to lock the row we intend to update to allow concurrent
- * access. So we need a custom implmentation where we could put this in a transaction.
+ * bookings. So we need a custom implementation where we could put this in a transaction.
  *
- * @author Zafar Ansari
+ * @author Zafar Ansarius
  */
 public class SlotRepositoryCustomImpl implements SlotRepositoryCustom {
 
