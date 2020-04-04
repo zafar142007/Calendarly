@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
           PasswordUtil.getHashedSaltedPassword(password, salt).toCharArray(), salt);
       userRepository.save(user);
     } catch (Exception e) {
-      throw new CalendarException("User could not be registered, try another input.", e);
+      throw new CalendarException("User exists, try another input.", e);
     }
     return true;
   }

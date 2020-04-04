@@ -79,7 +79,8 @@ public class SlotsServiceImpl implements SlotsService {
       List<Slot> availableSlots) {
     for (Slot slot : availableSlots) {
       Instant slotInstant = slot.getSlotStartTimestamp().toInstant();
-      if (slot.getSlotBooker() == null && slotInstant.isAfter(from) && slotInstant.isBefore(to)) {
+      if (slot.getSlotBooker() == null && slotInstant.isAfter(from) && slotInstant.isBefore(to)
+          && validationService.isInFuture(slotInstant)) {
         result.add(new Date(slotInstant.toEpochMilli()));
       }
     }
