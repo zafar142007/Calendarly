@@ -177,20 +177,4 @@ public class SlotsServiceImpl implements SlotsService {
     return result;
   }
 
-  private void book(Set<Instant> successfulSlots, User booker, Set<Instant> requestedSlots,
-      List<Slot> availableSlots) {
-    for (Slot availableSlot : availableSlots) {
-      if (availableSlot.getSlotBooker() == null && requestedSlots
-          .contains(availableSlot.getSlotStartTimestamp().toInstant())) {
-        availableSlot.setSlotBooker(booker);//update
-        try {
-          slotRepository.save(availableSlot);
-          successfulSlots.add(availableSlot.getSlotStartTimestamp().toInstant());
-        } catch (Exception e) {
-          LOG.error("Error while booking slot {}", availableSlot);
-        }
-      }
-    }
-  }
-
 }

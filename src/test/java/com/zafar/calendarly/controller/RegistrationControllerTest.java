@@ -49,10 +49,23 @@ public class RegistrationControllerTest {
         .registerUser(Mockito.any(), Mockito.any(), Mockito.any());
     Assert.assertFalse(controller.registerUser(new RegisterUserRequest()).isUserRegistered());
   }
+  @Test
+  public void testRegisterUserException1() throws CalendarException {
+    Mockito.doThrow(new CalendarException("mock")).when(calendarService)
+        .registerUser(Mockito.any(), Mockito.any(), Mockito.any());
+    Assert.assertFalse(controller.registerUser(new RegisterUserRequest()).isUserRegistered());
+  }
 
   @Test
   public void testLoginUserException() throws CalendarException {
     Mockito.doThrow(new RuntimeException()).when(calendarService)
+        .isValidUser(Mockito.any(), Mockito.any());
+    Assert.assertNull(controller.loginUser(new UserRequest()).getSessionId());
+  }
+
+  @Test
+  public void testLoginUserException1() throws CalendarException {
+    Mockito.doThrow(new CalendarException("mock")).when(calendarService)
         .isValidUser(Mockito.any(), Mockito.any());
     Assert.assertNull(controller.loginUser(new UserRequest()).getSessionId());
   }
