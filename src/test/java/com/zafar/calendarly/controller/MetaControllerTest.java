@@ -11,6 +11,5 @@ public class MetaControllerTest {
 
   @Test
   public void testHealth() {
-    Assert.assertEquals("OK", new MetaController().health().getMessage());
+    Assert.assertEquals("UP", new MetaController().health().getMessage());
   }
-}
