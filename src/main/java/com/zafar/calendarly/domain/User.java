@@ -1,12 +1,16 @@
 package com.zafar.calendarly.domain;
 
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.LockModeType;
 import javax.persistence.OneToMany;
+import org.springframework.data.jpa.repository.Lock;
 
 /**
  * User Domain class
@@ -39,11 +43,10 @@ public class User {
   @Column(name = "SALT", nullable = false)
   private String salt;
 
-
-  @OneToMany(mappedBy = "slotOwner")
+  @OneToMany(fetch = FetchType.LAZY, mappedBy = "slotOwner")
   private List<Slot> slotsOwned;
 
-  @OneToMany(mappedBy = "slotBooker")
+  @OneToMany(fetch = FetchType.LAZY, mappedBy = "slotBooker")
   private List<Slot> slotsBooked;
 
   public String getName() {

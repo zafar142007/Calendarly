@@ -95,6 +95,7 @@ public class SlotsServiceImpl implements SlotsService {
         List<User> userList = userRepository.findByEmail(email);
         if (userList != null && userList.size() > 0) {
           User user = userList.get(0);
+
           List<Slot> availableSlots = user.getSlotsOwned();
           getAvailableSlots(successfulSlots, from, to, availableSlots);
         } else {
@@ -126,12 +127,14 @@ public class SlotsServiceImpl implements SlotsService {
         List<User> users = userRepository.findByEmail(session.getEmail());
         if (users != null && users.size() == 1) {
           User booker = users.get(0);
+
           List<User> bookeeList = userRepository.findByEmail(emailBookee);
           if (bookeeList != null && bookeeList.size() > 0) {
             User bookee = bookeeList.get(0);
             Set<Instant> requestedSlots = new HashSet<>(Arrays.asList(slots));
-            List<Slot> availableSlots = bookee.getSlotsOwned();
-            book(successfulSlots, booker, requestedSlots, availableSlots);
+            //lock
+            performBooking(successfulSlots, booker, bookee, requestedSlots);
+            //unlock
           } else {
             LOG.error("Bookee user {} not found", emailBookee);
             throw new CalendarException("No user found to book");
@@ -154,6 +157,14 @@ public class SlotsServiceImpl implements SlotsService {
     return prepareResult(slots, successfulSlots);
   }
 
+  /**
+   * book the slots which are available and also in requested slots
+   */
+  private void performBooking(Set<Instant> successfulSlots, User booker, User bookee,
+      Set<Instant> requestedSlots) {
+    slotRepository.bookFreeSlots(successfulSlots, booker, requestedSlots, bookee.getId());
+  }
+
   private Map<Instant, Boolean> prepareResult(Instant[] slots, Set<Instant> successfulSlots) {
     Map<Instant, Boolean> result = new HashMap<>();
     for (Instant ins : slots) {
@@ -171,7 +182,7 @@ public class SlotsServiceImpl implements SlotsService {
     for (Slot availableSlot : availableSlots) {
       if (availableSlot.getSlotBooker() == null && requestedSlots
           .contains(availableSlot.getSlotStartTimestamp().toInstant())) {
-        availableSlot.setSlotBooker(booker);
+        availableSlot.setSlotBooker(booker);//update
         try {
           slotRepository.save(availableSlot);
           successfulSlots.add(availableSlot.getSlotStartTimestamp().toInstant());
