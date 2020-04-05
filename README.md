@@ -16,6 +16,10 @@ Features:
 4. Uses JPA for database and transaction management.
 5. Unit test coverage of 90%.
 
+Data flow diagram
+-----------------
+![Data Flow diagram](data-flow.png "Calendarly Data flow diagram")
+
 
 API documentation
 -----------------
