@@ -9,7 +9,10 @@ Functional tests and APIs are written as a part of the following Postman collect
 
 This app is currently running at Heroku [here](https://calendarly-app.herokuapp.com/calendarly/health).
 
+It is assumed that the slots are hourly in length. The database model is in data.sql which is executed during startup.
+
 Features:
+
 1. Uses an in-memory session implementation.
 2. Uses in-memory H2 database.
 3. Runs on Spring Boot.
@@ -195,3 +198,8 @@ Response:
     "message": "UP"
 }
 ```
+
+Build
+------
+
+You can build the project by 'mvn clean install' locally. Run it using java -jar target/calendarly-1.0.jar
