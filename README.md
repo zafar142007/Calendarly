@@ -20,6 +20,9 @@ Data flow diagram
 -----------------
 ![Data Flow diagram](data-flow.png "Calendarly Data flow diagram")
 
+ER diagram
+------------
+![ER diagram](erd-calendarly.png "Calendarly ER diagram")
 
 API documentation
 -----------------
