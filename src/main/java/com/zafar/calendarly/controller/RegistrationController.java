@@ -1,12 +1,12 @@
 package com.zafar.calendarly.controller;
 
-import com.zafar.calendarly.domain.response.LoginUserResponse;
 import com.zafar.calendarly.domain.request.RegisterUserRequest;
-import com.zafar.calendarly.domain.response.RegisterUserResponse;
 import com.zafar.calendarly.domain.request.UserRequest;
+import com.zafar.calendarly.domain.response.LoginUserResponse;
+import com.zafar.calendarly.domain.response.RegisterUserResponse;
 import com.zafar.calendarly.exception.CalendarException;
-import com.zafar.calendarly.service.UserService;
 import com.zafar.calendarly.service.SessionService;
+import com.zafar.calendarly.service.UserService;
 import com.zafar.calendarly.util.CalendarConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -65,10 +65,10 @@ public class RegistrationController {
   public LoginUserResponse loginUser(@RequestBody UserRequest request) {
     LoginUserResponse response = null;
     try {
-      boolean isValid = calendarService
+      Integer id = calendarService
           .isValidUser(request.getEmail(), request.getPassword());
-      if (isValid) {
-        String session = sessionService.createSession(request.getEmail());
+      if (id != null) {
+        String session = sessionService.createSession(id);
         response = new LoginUserResponse(
             session, CalendarConstants.OK_MESSAGE);
       } else {

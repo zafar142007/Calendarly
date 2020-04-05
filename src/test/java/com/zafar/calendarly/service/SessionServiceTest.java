@@ -29,18 +29,18 @@ public class SessionServiceTest {
   public void init() {
     MockitoAnnotations.initMocks(this);
     Mockito.when(sessionProvider.getSession(Mockito.any()))
-        .thenReturn(new Session(Instant.now().toEpochMilli(), "mock"));
+        .thenReturn(new Session(Instant.now().toEpochMilli(), 1));
     Mockito.when(sessionProvider.newSession(Mockito.any())).thenReturn("mock");
   }
 
   @Test
   public void testGet() {
-    Assert.assertEquals("mock", sessionService.getSession("mock").getEmail());
+    Assert.assertEquals(1, (int) (sessionService.getSession("mock").getUserId()));
   }
 
   @Test
   public void testNewSession() {
-    Assert.assertEquals("mock", sessionService.createSession("mock"));
+    Assert.assertEquals("mock", sessionService.createSession(1));
   }
 
 }

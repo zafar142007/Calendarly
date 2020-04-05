@@ -12,13 +12,14 @@ public interface UserService {
   /**
    * Create a new user if not already existing
    *
-   * @return if successful
+   * @return true if successful, else false
    */
   boolean registerUser(String userEmail, String password, String userName)
       throws CalendarException;
 
   /**
    * Authenticate the user by checking the details provided.
+   * @return id of the user if successful, else null
    */
-  boolean isValidUser(String userEmail, String password) throws CalendarException;
+  Integer isValidUser(String userEmail, String password) throws CalendarException;
 }

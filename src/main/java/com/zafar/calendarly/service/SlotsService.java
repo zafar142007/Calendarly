@@ -25,7 +25,7 @@ public interface SlotsService {
    * Book slots for the logged-in user in the calendar of the @param emailBookee user if available
    *
    * @param slots slots requested
-   * @param emailBookee email of the user whose slots are requested
+   * @param emailBookee userId of the user whose slots are requested
    * @return a map indicating which slots were successfully booked, and not booked
    */
   Map<Instant, Boolean> bookSlots(Instant[] slots, String emailBookee) throws CalendarException;

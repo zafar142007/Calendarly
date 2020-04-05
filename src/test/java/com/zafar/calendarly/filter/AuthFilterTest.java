@@ -39,7 +39,7 @@ public class AuthFilterTest {
     HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
     HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
     Mockito.when(request.getHeader(Mockito.anyString())).thenReturn("mock");
-    Mockito.when(service.getSession(Mockito.anyString())).thenReturn(new Session(0l, "mock"));
+    Mockito.when(service.getSession(Mockito.anyString())).thenReturn(new Session(0l, 1));
     authFilter.doFilter(request, response, Mockito.mock(FilterChain.class));
   }
 

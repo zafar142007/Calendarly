@@ -42,10 +42,12 @@ public class UserServiceImplTest {
   @Test
   public void testIsValidUser() throws Exception {
     String salt = PasswordUtil.getNewRandomString(CalendarConstants.SALT_LENGTH);
+    User user = new User("mock", "mockName",
+        PasswordUtil.getHashedSaltedPassword("mock", salt).toCharArray(), salt);
+    user.setId(1);
     Mockito.when(userRepository.findByEmail(Mockito.any()))
-        .thenReturn(Arrays.asList(new User("mock", "mockName",
-            PasswordUtil.getHashedSaltedPassword("mock", salt).toCharArray(), salt)));
-    Assert.assertTrue(service.isValidUser("mock", "mock"));
+        .thenReturn(Arrays.asList(user));
+    Assert.assertEquals(1, (int)service.isValidUser("mock", "mock"));
   }
 
   @Test(expected = CalendarException.class)

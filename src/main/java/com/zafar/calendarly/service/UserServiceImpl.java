@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Service to handle operations related to User resource
+ *
  * @author Zafar Ansari
  */
 @Service
@@ -37,15 +38,17 @@ public class UserServiceImpl implements UserService {
     return true;
   }
 
-  public boolean isValidUser(String userEmail, String password) throws CalendarException {
-    boolean result = false;
+  public Integer isValidUser(String userEmail, String password) throws CalendarException {
+    Integer result = null;
     try {
       List<User> users = userRepository.findByEmail(userEmail);
       if (users != null && users.size() == 1) {
         User usr = users.get(0);
         String hashedPassword = String.valueOf(usr.getHashedPassword());
-        result = hashedPassword
-            .equals(PasswordUtil.getHashedSaltedPassword(password, usr.getSalt()));
+        if (hashedPassword
+            .equals(PasswordUtil.getHashedSaltedPassword(password, usr.getSalt()))) {
+          result = usr.getId();
+        }
       } else {
         throw new CalendarException("User not found, try another input.");
       }

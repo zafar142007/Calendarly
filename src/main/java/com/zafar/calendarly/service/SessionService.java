@@ -16,8 +16,8 @@ public class SessionService {
   @Autowired
   private SessionProvider sessionProvider;
 
-  public String createSession(String email) {
-    return sessionProvider.newSession(email);
+  public String createSession(Integer id) {
+    return sessionProvider.newSession(id);
   }
 
   public Session getSession(String sessionId) {

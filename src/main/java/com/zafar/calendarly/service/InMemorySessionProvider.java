@@ -29,11 +29,11 @@ public class InMemorySessionProvider implements SessionProvider {
   private Long expiryInterval;
 
   @Override
-  public String newSession(String email) {
+  public String newSession(Integer id) {
     String session = PasswordUtil.getNewRandomString(CalendarConstants.SESSION_ID_LENGTH);
     long time = System.currentTimeMillis();
     monitor.readLock().lock();
-    sessionStore.put(session, new Session(time, email));
+    sessionStore.put(session, new Session(time, id));
     monitor.readLock().unlock();
 
     return session;
@@ -72,19 +72,19 @@ public class InMemorySessionProvider implements SessionProvider {
   public static class Session {
 
     Long timestamp;
-    String email;
+    Integer userId;
 
-    public Session(Long timestamp, String email) {
+    public Session(Long timestamp, Integer userId) {
       this.timestamp = timestamp;
-      this.email = email;
+      this.userId = userId;
     }
 
     public Long getTimestamp() {
       return timestamp;
     }
 
-    public String getEmail() {
-      return email;
+    public Integer getUserId() {
+      return userId;
     }
   }
 }

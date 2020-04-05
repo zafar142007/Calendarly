@@ -46,22 +46,19 @@ public class SlotsServiceImpl implements SlotsService {
     Session session = SessionContainer.getSessionThreadLocal().get();
     try {
       if (session != null && slots != null) {
-        List<User> users = userRepository.findByEmail(session.getEmail());
-        if (users != null && users.size() == 1) {
-          User usr = users.get(0);
-          List<Slot> slotList = new ArrayList<>();
-          for (Instant slot : slots) {
-            if (validationService.isInFuture(slot)) {
-              slotList.add(new Slot(usr, new Timestamp(slot.toEpochMilli()), null));
-            } else {
-              LOG.warn("Ignoring slot {} in past", slot);
-            }
+        Integer userId = session.getUserId();
+
+        User usr = new User(userId);
+        List<Slot> slotList = new ArrayList<>();
+        for (Instant slot : slots) {
+          if (validationService.isInFuture(slot)) {
+            slotList.add(new Slot(usr, new Timestamp(slot.toEpochMilli()), null));
+          } else {
+            LOG.warn("Ignoring slot {} in past", slot);
           }
-          slotRepository.saveAll(slotList);
-        } else {
-          LOG.error("user not found");
-          throw new CalendarException("user not found");
         }
+        slotRepository.saveAll(slotList);
+
       } else {
         LOG.error("session invalid");
         throw new CalendarException("Invalid session");
@@ -125,25 +122,21 @@ public class SlotsServiceImpl implements SlotsService {
     Set<Instant> successfulSlots = new HashSet<>();
     try {
       if (session != null) {
-        List<User> users = userRepository.findByEmail(session.getEmail());
-        if (users != null && users.size() == 1) {
-          User booker = users.get(0);
 
-          List<User> bookeeList = userRepository.findByEmail(emailBookee);
-          if (bookeeList != null && bookeeList.size() > 0) {
-            User bookee = bookeeList.get(0);
-            Set<Instant> requestedSlots = new HashSet<>(Arrays.asList(slots));
-            //lock
-            performBooking(successfulSlots, booker, bookee, requestedSlots);
-            //unlock
-          } else {
-            LOG.error("Bookee user {} not found", emailBookee);
-            throw new CalendarException("No user found to book");
-          }
+        User booker = new User(session.getUserId());
+
+        List<User> bookeeList = userRepository.findByEmail(emailBookee);
+        if (bookeeList != null && bookeeList.size() > 0) {
+          User bookee = bookeeList.get(0);
+          Set<Instant> requestedSlots = new HashSet<>(Arrays.asList(slots));
+          //lock
+          performBooking(successfulSlots, booker, bookee, requestedSlots);
+          //unlock
         } else {
-          LOG.error("user not found");
-          throw new CalendarException("user not found");
+          LOG.error("Bookee user {} not found", emailBookee);
+          throw new CalendarException("No user found to book");
         }
+
       } else {
         LOG.error("session invalid");
         throw new CalendarException("Invalid session");

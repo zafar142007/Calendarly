@@ -57,9 +57,7 @@ public class SlotsServiceImplTest {
   @Test
   public void testAddSlots() throws CalendarException {
     SessionContainer.getSessionThreadLocal()
-        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), "mock"));
-    Mockito.when(userRepository.findByEmail(Mockito.any()))
-        .thenReturn(Arrays.asList(new User("mock", "mock", "mock".toCharArray(), "salt")));
+        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), 1));
     //only one slot should have been added
     ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
     slotsService.addSlots(new Instant[]{Instant.now().plus(Duration.ofMinutes(5)), //future
@@ -69,26 +67,20 @@ public class SlotsServiceImplTest {
   }
 
   @Test(expected = CalendarException.class)
-  public void testAddSlotsUserNotFound() throws CalendarException {
-    SessionContainer.getSessionThreadLocal()
-        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), "mock"));
-    Mockito.when(userRepository.findByEmail(Mockito.any()))
-        .thenReturn(Lists.emptyList());
-    slotsService.addSlots(new Instant[]{Instant.now().plus(Duration.ofMinutes(5))});
-  }
-
-  @Test(expected = CalendarException.class)
   public void testAddSlotsException() throws CalendarException {
     SessionContainer.getSessionThreadLocal()
-        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), "mock"));
-    Mockito.doThrow(RuntimeException.class).when(userRepository).findByEmail(Mockito.any());
-    slotsService.addSlots(new Instant[]{Instant.now().plus(Duration.ofMinutes(5))});
+        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), 1));
+    Mockito.doThrow(new RuntimeException()).when(slotRepository).saveAll(Mockito.anyCollection());
+    //only one slot should have been added
+    slotsService.addSlots(new Instant[]{Instant.now().plus(Duration.ofMinutes(5)), //future
+        Instant.now().minus(Duration.ofMinutes(65))}); //past slot
   }
+
 
   @Test
   public void testGetSlots() throws CalendarException {
     SessionContainer.getSessionThreadLocal()
-        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), "mock"));
+        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), 1));
     User user = Mockito.mock(User.class);
     Mockito.when(userRepository.findByEmail(Mockito.any()))
         .thenReturn(Arrays.asList(user));
@@ -108,7 +100,7 @@ public class SlotsServiceImplTest {
   @Test(expected = CalendarException.class)
   public void testGetSlotsUserNotFound() throws CalendarException {
     SessionContainer.getSessionThreadLocal()
-        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), "mock"));
+        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), 1));
     Mockito.when(userRepository.findByEmail(Mockito.any()))
         .thenReturn(Lists.emptyList());
     slotsService.getSlots("mock", Instant.now(),
@@ -118,7 +110,7 @@ public class SlotsServiceImplTest {
   @Test(expected = CalendarException.class)
   public void testGetSlotsException() throws CalendarException {
     SessionContainer.getSessionThreadLocal()
-        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), "mock"));
+        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), 1));
     Mockito.doThrow(RuntimeException.class).when(userRepository).findByEmail(Mockito.any());
     slotsService.getSlots("mock", Instant.now(), Instant.now().plus(Duration.ofMinutes(100)));
   }
@@ -127,7 +119,7 @@ public class SlotsServiceImplTest {
   @Test(expected = CalendarException.class)
   public void testBookSlotsUserNotFound() throws CalendarException {
     SessionContainer.getSessionThreadLocal()
-        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), "mock"));
+        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), 1));
     Mockito.when(userRepository.findByEmail(Mockito.any()))
         .thenReturn(Lists.emptyList());
     slotsService.bookSlots(new Instant[]{}, "mock");
@@ -136,7 +128,7 @@ public class SlotsServiceImplTest {
   @Test(expected = CalendarException.class)
   public void testBookSlotsException() throws CalendarException {
     SessionContainer.getSessionThreadLocal()
-        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), "mock"));
+        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), 1));
     Mockito.doThrow(RuntimeException.class).when(userRepository).findByEmail(Mockito.any());
     slotsService.bookSlots(new Instant[]{}, "mock");
   }
@@ -144,7 +136,7 @@ public class SlotsServiceImplTest {
   @Test
   public void testBookSlots() throws CalendarException {
     SessionContainer.getSessionThreadLocal()
-        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), "mock"));
+        .set(new Session(Instant.now().plus(Duration.ofMinutes(100)).toEpochMilli(), 1));
     User user = Mockito.mock(User.class);
     Mockito.when(userRepository.findByEmail(Mockito.any()))
         .thenReturn(Arrays.asList(user));

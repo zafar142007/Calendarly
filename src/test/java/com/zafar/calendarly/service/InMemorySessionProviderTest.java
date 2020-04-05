@@ -26,22 +26,22 @@ public class InMemorySessionProviderTest {
   @Test
   public void testNewSession() throws IllegalAccessException {
     FieldUtils.writeField(provider, "expiryInterval", 30000l, true);
-    String id = provider.newSession("mock");
-    Assert.assertEquals("mock", provider.getSession(id).getEmail());
+    String id = provider.newSession(1);
+    Assert.assertEquals(1, (int)provider.getSession(id).getUserId());
   }
 
   @Test
   public void testValidSession() throws IllegalAccessException {
     FieldUtils.writeField(provider, "expiryInterval", -30000l, true);
-    String id = provider.newSession("mock");
+    String id = provider.newSession(1);
     Assert.assertNull(provider.getSession(id));
   }
 
   @Test
   public void testCleanup() throws IllegalAccessException {
     FieldUtils.writeField(provider, "expiryInterval", 0l, true);
-    provider.newSession("mock");
-    provider.newSession("mock1");
+    provider.newSession(1);
+    provider.newSession(2);
     provider.cleanup();
   }
 

@@ -73,7 +73,7 @@ public class RegistrationControllerTest {
   @Test
   public void testLoginUserValid() throws CalendarException {
     Mockito.when(calendarService
-        .isValidUser(Mockito.any(), Mockito.any())).thenReturn(true);
+        .isValidUser(Mockito.any(), Mockito.any())).thenReturn(1);
     Mockito.when(sessionService
         .createSession(Mockito.any())).thenReturn("mock");
 
@@ -83,7 +83,7 @@ public class RegistrationControllerTest {
   @Test
   public void testLoginUserInValid() throws CalendarException {
     Mockito.when(calendarService
-        .isValidUser(Mockito.any(), Mockito.any())).thenReturn(false);
+        .isValidUser(Mockito.any(), Mockito.any())).thenReturn(null);
 
     Assert.assertNull(controller.loginUser(new UserRequest()).getSessionId());
   }

@@ -84,6 +84,10 @@ public class User {
   public User() {
   }
 
+  public User(Integer id) {
+    this.id = id;
+  }
+
   public List<Slot> getSlotsOwned() {
     return slotsOwned;
   }
@@ -101,5 +105,9 @@ public class User {
 
   public Integer getId() {
     return id;
+  }
+
+  public void setId(Integer id) {
+    this.id = id;
   }
 }

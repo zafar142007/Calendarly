@@ -12,10 +12,10 @@ public interface SessionProvider {
   /**
    * Generate a new session
    *
-   * @param email associate the generated Session object with the email provided
+   * @param id associate the generated Session object with the userId provided
    * @return session id
    */
-  String newSession(String email);
+  String newSession(Integer id);
 
   /**
    * Check if the provided session is valid. If yes, return the Session object else null.
