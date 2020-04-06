@@ -3,7 +3,9 @@ package com.zafar.calendarly.dao;
 import com.zafar.calendarly.domain.Slot;
 import com.zafar.calendarly.domain.User;
 import com.zafar.calendarly.util.CalendarConstants;
+import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,24 @@ public class SlotRepositoryCustomImpl implements SlotRepositoryCustom {
   @Value(CalendarConstants.DB_ROW_LOCK_TIMEOUT_MS)
   private long lockTimeoutMs;
 
+  public SimpleEntry<Timestamp, Timestamp> pickMaxMin(Set<Instant> requestedSlots) {
+    Instant max = null, min = null;
+    for (Instant instant : requestedSlots) {
+      if (max == null && min == null) {
+        max = instant;
+        min = instant;
+      } else {
+        if (instant.isBefore(min)) {
+          min = instant;
+        }
+        if (instant.isAfter(max)) {
+          max = instant;
+        }
+      }
+    }
+    return new SimpleEntry<>(new Timestamp(max.toEpochMilli()), new Timestamp(min.toEpochMilli()));
+  }
+
   @Transactional
   @Override
   public void bookFreeSlots(Set<Instant> successfulSlots, User booker, Set<Instant> requestedSlots,
@@ -42,9 +62,13 @@ public class SlotRepositoryCustomImpl implements SlotRepositoryCustom {
     Map<String, Object> properties = new HashMap<>();
     properties.put("javax.persistence.lock.scope", PessimisticLockScope.EXTENDED);
     properties.put("javax.persistence.lock.timeout", lockTimeoutMs);
+    SimpleEntry<Timestamp, Timestamp> maxMin = pickMaxMin(requestedSlots);
     Query query = em.createQuery(
-        "select s from Slot s where s.slotOwner.id = :owner and s.slotBooker = null");
+        "select s from Slot s where s.slotOwner.id = :owner and s.slotBooker = null and s.slotStartTimestamp>=sysdate and  s.slotStartTimestamp >= :startDate and s.slotStartTimestamp <=:endDate");
+
     query.setParameter("owner", bookeeId);
+    query.setParameter("startDate", maxMin.getValue());
+    query.setParameter("endDate", maxMin.getKey());
     List<Slot> slots = query.getResultList();
     for (Slot availableSlot : slots) {
       try {
