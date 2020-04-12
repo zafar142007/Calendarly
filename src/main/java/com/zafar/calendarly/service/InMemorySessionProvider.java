@@ -7,9 +7,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 
 
 /**
@@ -28,14 +32,22 @@ public class InMemorySessionProvider implements SessionProvider {
   @Value(CalendarConstants.SESSION_EXPIRY_INTERVAL_MS)
   private Long expiryInterval;
 
-  @Override
-  public String newSession(Integer id) {
-    String session = PasswordUtil.getNewRandomString(CalendarConstants.SESSION_ID_LENGTH);
-    long time = System.currentTimeMillis();
-    monitor.readLock().lock();
-    sessionStore.put(session, new Session(time, id));
-    monitor.readLock().unlock();
+  @Autowired
+  private PasswordUtil passwordUtil;
 
+  @Autowired
+  @Qualifier("worker")
+  private Scheduler worker;
+
+  @Override
+  public Mono<String> newSession(Integer id) {
+    Mono<String> session = passwordUtil.getNewRandomString(CalendarConstants.SESSION_ID_LENGTH);
+    long time = System.currentTimeMillis();
+    session.subscribeOn(worker).handle((sessionId, sink) -> {
+      monitor.readLock().lock();
+      sessionStore.put(sessionId, new Session(time, id));
+      monitor.readLock().unlock();
+    });
     return session;
   }
 

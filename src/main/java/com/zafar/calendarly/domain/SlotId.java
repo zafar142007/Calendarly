@@ -10,30 +10,30 @@ import java.sql.Timestamp;
  */
 public class SlotId implements Serializable {
 
-  private Integer slotOwner;
+  private Integer slotOwnerId;
 
   private Timestamp slotStartTimestamp;
 
   public SlotId() {
   }
 
-  public SlotId(Integer slotOwner, Timestamp slotStartTimestamp) {
-    this.slotOwner = slotOwner;
+  public SlotId(Integer slotOwnerId, Timestamp slotStartTimestamp) {
+    this.slotOwnerId = slotOwnerId;
     this.slotStartTimestamp = slotStartTimestamp;
   }
 
 
-  public SlotId(User slotOwner, Timestamp slotStartTimestamp) {
-    this.slotOwner = slotOwner.getId();
+  public SlotId(User slotOwnerId, Timestamp slotStartTimestamp) {
+    this.slotOwnerId = slotOwnerId.getId();
     this.slotStartTimestamp = slotStartTimestamp;
   }
 
-  public Integer getSlotOwner() {
-    return slotOwner;
+  public Integer getSlotOwnerId() {
+    return slotOwnerId;
   }
 
-  public void setSlotOwner(Integer slotOwner) {
-    this.slotOwner = slotOwner;
+  public void setSlotOwnerId(Integer slotOwnerId) {
+    this.slotOwnerId = slotOwnerId;
   }
 
   public Timestamp getSlotStartTimestamp() {
@@ -55,7 +55,7 @@ public class SlotId implements Serializable {
 
     SlotId slotId = (SlotId) o;
 
-    if (!slotOwner.equals(slotId.slotOwner)) {
+    if (!slotOwnerId.equals(slotId.slotOwnerId)) {
       return false;
     }
     return slotStartTimestamp.equals(slotId.slotStartTimestamp);
@@ -63,7 +63,7 @@ public class SlotId implements Serializable {
 
   @Override
   public int hashCode() {
-    int result = slotOwner.hashCode();
+    int result = slotOwnerId.hashCode();
     result = 31 * result + slotStartTimestamp.hashCode();
     return result;
   }

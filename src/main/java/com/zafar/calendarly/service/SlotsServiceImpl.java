@@ -20,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 
 /**
@@ -52,7 +53,7 @@ public class SlotsServiceImpl implements SlotsService {
         List<Slot> slotList = new ArrayList<>();
         for (Instant slot : slots) {
           if (validationService.isInFuture(slot)) {
-            slotList.add(new Slot(usr, new Timestamp(slot.toEpochMilli()), null));
+            slotList.add(new Slot(usr.getId(), new Timestamp(slot.toEpochMilli()), null));
           } else {
             LOG.warn("Ignoring slot {} in past", slot);
           }
@@ -76,7 +77,7 @@ public class SlotsServiceImpl implements SlotsService {
       List<Slot> availableSlots) {
     for (Slot slot : availableSlots) {
       Instant slotInstant = slot.getSlotStartTimestamp().toInstant();
-      if (slot.getSlotBooker() == null && slotInstant.isAfter(from) && slotInstant.isBefore(to)
+      if (slot.getSlotBookerId() == null && slotInstant.isAfter(from) && slotInstant.isBefore(to)
           && validationService.isInFuture(slotInstant)) {
         result.add(new Date(slotInstant.toEpochMilli()));
       }
@@ -90,11 +91,11 @@ public class SlotsServiceImpl implements SlotsService {
     List<Date> successfulSlots = new ArrayList<>();
     try {
       if (session != null) {
-        List<User> userList = userRepository.findByEmail(email);
+        List<User> userList = userRepository.findByEmail(email).collectList().block();
         if (userList != null && userList.size() > 0) {
           User user = userList.get(0);
 
-          List<Slot> availableSlots = user.getSlotsOwned();
+          List<Slot> availableSlots = null;// user.getSlotsOwned();
           getAvailableSlots(successfulSlots, from, to, availableSlots);
         } else {
           LOG.error("Bookee user {} not found", email);
@@ -125,12 +126,12 @@ public class SlotsServiceImpl implements SlotsService {
 
         User booker = new User(session.getUserId());
 
-        List<User> bookeeList = userRepository.findByEmail(emailBookee);
-        if (bookeeList != null && bookeeList.size() > 0) {
+        List<User> bookeeList = userRepository.findByEmail(emailBookee).collectList().block();
+        if (bookeeList != null) {
           User bookee = bookeeList.get(0);
           Set<Instant> requestedSlots = new HashSet<>(Arrays.asList(slots));
           //lock
-          performBooking(successfulSlots, booker, bookee, requestedSlots);
+          performBooking(booker, bookee, requestedSlots);
           //unlock
         } else {
           LOG.error("Bookee user {} not found", emailBookee);
@@ -154,9 +155,9 @@ public class SlotsServiceImpl implements SlotsService {
   /**
    * book the slots which are available and also in requested slots
    */
-  private void performBooking(Set<Instant> successfulSlots, User booker, User bookee,
+  private Flux<Instant> performBooking(User booker, User bookee,
       Set<Instant> requestedSlots) {
-    slotRepository.bookFreeSlots(successfulSlots, booker, requestedSlots, bookee.getId());
+    return slotRepository.bookFreeSlots(booker.getId(), requestedSlots, bookee.getId());
   }
 
   private Map<Instant, Boolean> prepareResult(Instant[] slots, Set<Instant> successfulSlots) {

@@ -3,6 +3,7 @@ package com.zafar.calendarly.service;
 import com.zafar.calendarly.service.InMemorySessionProvider.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 
 /**
@@ -16,7 +17,7 @@ public class SessionService {
   @Autowired
   private SessionProvider sessionProvider;
 
-  public String createSession(Integer id) {
+  public Mono<String> createSession(Integer id) {
     return sessionProvider.newSession(id);
   }
 

@@ -2,15 +2,8 @@ package com.zafar.calendarly.domain;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.PrimaryKeyJoinColumns;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 
 
 /**
@@ -18,42 +11,31 @@ import javax.persistence.PrimaryKeyJoinColumns;
  *
  * @author Zafar Ansari
  */
-@Entity
-@IdClass(SlotId.class)
 public class Slot implements Serializable {
 
   private final static long serialVersionUID = 1l;
 
   @Id
-  @JoinColumn(name = "SLOT_OWNER_ID", nullable = false)
-  @ManyToOne(fetch = FetchType.LAZY)
-  private User slotOwner;
+  @Column("SLOT_OWNER_ID")
+  private Integer slotOwnerId;
 
-  @Id
-  @Column(name = "SLOT_START", nullable = false)
+  @Column("SLOT_START")
   private Timestamp slotStartTimestamp;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "SLOT_BOOKED_BY", nullable = true)
-  private User slotBooker;
+  @Column("SLOT_BOOKED_BY")
+  private Integer slotBookerId;
 
-  public Slot(User slotOwner, Timestamp slotStartTimestamp,
-      User slotBooker) {
-    this.slotOwner = slotOwner;
+
+  public Slot(Integer slotOwner, Timestamp slotStartTimestamp,
+      Integer slotBooker) {
+    slotOwnerId = slotOwner;
+    slotBookerId = slotBooker;
     this.slotStartTimestamp = slotStartTimestamp;
-    this.slotBooker = slotBooker;
   }
 
   public Slot() {
   }
 
-  public User getSlotOwner() {
-    return slotOwner;
-  }
-
-  public void setSlotOwner(User slotOwner) {
-    this.slotOwner = slotOwner;
-  }
 
   public Timestamp getSlotStartTimestamp() {
     return slotStartTimestamp;
@@ -63,11 +45,19 @@ public class Slot implements Serializable {
     this.slotStartTimestamp = slotStartTimestamp;
   }
 
-  public User getSlotBooker() {
-    return slotBooker;
+  public Integer getSlotOwnerId() {
+    return slotOwnerId;
   }
 
-  public void setSlotBooker(User slotBooker) {
-    this.slotBooker = slotBooker;
+  public void setSlotOwnerId(Integer slotOwnerId) {
+    this.slotOwnerId = slotOwnerId;
+  }
+
+  public Integer getSlotBookerId() {
+    return slotBookerId;
+  }
+
+  public void setSlotBookerId(Integer slotBookerId) {
+    this.slotBookerId = slotBookerId;
   }
 }

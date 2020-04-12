@@ -1,59 +1,42 @@
 package com.zafar.calendarly.domain;
 
-import java.util.List;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.LockModeType;
-import javax.persistence.OneToMany;
-import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 
 /**
  * User Domain class
  *
  * @author Zafar Ansari
  */
-@Entity
 public class User {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(name = "ID")
+  @Column("ID")
   private Integer id;
 
-  @Column(name = "USER_EMAIL", nullable = false, unique = true)
+  @Column("USER_EMAIL")
   private String email;
 
-  @Column(name = "USER_NAME", nullable = false)
+  @Column("USER_NAME")
   private String name;
 
   /**
    * password should be hashed with salt
    */
-  @Column(name = "HASHED_PASSWORD", nullable = false)
-  private char[] hashedPassword;
+  @Column("HASHED_PASSWORD")
+  private String hashedPassword;
 
   /**
    * A unique randomly generated string serves as a salt
    */
-  @Column(name = "SALT", nullable = false)
+  @Column("SALT")
   private String salt;
-
-  @OneToMany(fetch = FetchType.LAZY, mappedBy = "slotOwner")
-  private List<Slot> slotsOwned;
-
-  @OneToMany(fetch = FetchType.LAZY, mappedBy = "slotBooker")
-  private List<Slot> slotsBooked;
 
   public String getName() {
     return name;
   }
 
-  public char[] getHashedPassword() {
+  public String getHashedPassword() {
     return hashedPassword;
   }
 
@@ -73,7 +56,7 @@ public class User {
     this.name = name;
   }
 
-  public void setHashedPassword(char[] hashedPassword) {
+  public void setHashedPassword(String hashedPassword) {
     this.hashedPassword = hashedPassword;
   }
 
@@ -84,19 +67,19 @@ public class User {
   public User() {
   }
 
+  public User(Integer id, String email, String name, String hashedPassword, String salt) {
+    this.id = id;
+    this.email = email;
+    this.name = name;
+    this.hashedPassword = hashedPassword;
+    this.salt = salt;
+  }
+
   public User(Integer id) {
     this.id = id;
   }
 
-  public List<Slot> getSlotsOwned() {
-    return slotsOwned;
-  }
-
-  public List<Slot> getSlotsBooked() {
-    return slotsBooked;
-  }
-
-  public User(String email, String name, char[] hashedPassword, String salt) {
+  public User(String email, String name, String hashedPassword, String salt) {
     this.email = email;
     this.name = name;
     this.hashedPassword = hashedPassword;

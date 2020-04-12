@@ -4,10 +4,14 @@ import com.zafar.calendarly.exception.CalendarException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 
 
 /**
@@ -15,20 +19,27 @@ import org.apache.logging.log4j.Logger;
  *
  * @author Zafar Ansari
  */
+@Service
 public class PasswordUtil {
 
   public static final Logger LOG = LogManager.getLogger(PasswordUtil.class);
+
+  @Autowired
+  @Qualifier("worker")
+  private Scheduler worker;
 
   /**
    * Get a new random readable string of provided length
    *
    * @return random string
    */
-  public static String getNewRandomString(int length) {
-    SecureRandom random = new SecureRandom();
-    byte[] bytes = new byte[length];
-    random.nextBytes(bytes);
-    return fromBytes(bytes);
+  public Mono<String> getNewRandomString(int length) {
+    return Mono.<String>create(sink -> {
+      SecureRandom secureRandom = new SecureRandom();
+      byte[] bytes = new byte[length];
+      secureRandom.nextBytes(bytes);
+      sink.success(fromBytes(bytes));
+    }).subscribeOn(worker);
   }
 
   /**
@@ -38,26 +49,35 @@ public class PasswordUtil {
    * @param salt salt
    * @return salted hash
    */
-  public static String getHashedSaltedPassword(String password, String salt)
-      throws NoSuchAlgorithmException, CalendarException {
-    MessageDigest md = MessageDigest.getInstance("SHA-256");
-    if (password != null && password.isEmpty() && salt != null && salt.isEmpty()) {
-      throw new CalendarException("Invalid input");
-    }
-    return toHexString(md.digest(concatSalt(password, salt).getBytes(StandardCharsets.UTF_8)));
+  public Mono<String> getHashedSaltedPassword(String password, String salt) {
+
+    return Mono.<String>create(sink -> {
+      MessageDigest messageDigest = null;
+      try {
+        messageDigest = MessageDigest.getInstance("SHA-256");
+      } catch (Exception e) {
+        LOG.error(e);
+        sink.error(new CalendarException("Invalid input", e));
+      }
+      if (password != null && password.isEmpty() && salt != null && salt.isEmpty()) {
+        sink.error(new CalendarException("Invalid input"));
+      }
+      sink.success(toHexString(
+          messageDigest.digest(concatSalt(password, salt).getBytes(StandardCharsets.UTF_8))));
+    }).subscribeOn(worker);
   }
 
-  private static String concatSalt(String password, String salt) {
+  private String concatSalt(String password, String salt) {
     return salt.concat(password);
   }
 
-  private static String toHexString(byte[] hash) {
+  private String toHexString(byte[] hash) {
     BigInteger number = new BigInteger(1, hash);
     StringBuilder hexString = new StringBuilder(number.toString(16));
     return hexString.toString();
   }
 
-  private static String fromBytes(byte[] bytes) {
+  private String fromBytes(byte[] bytes) {
     StringBuilder s = new StringBuilder();
     for (byte b : bytes) {
       if ((b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9')) {

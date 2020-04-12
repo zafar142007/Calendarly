@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 
 /**
@@ -40,21 +41,21 @@ public class RegistrationController {
    * @param request the details of the user
    */
   @PostMapping("/signup")
-  public RegisterUserResponse registerUser(@RequestBody RegisterUserRequest request) {
-    RegisterUserResponse response = null;
-    try {
-      boolean result = calendarService
-          .registerUser(request.getEmail(), request.getPassword(), request.getName());
-      response = new RegisterUserResponse(
-          result ? CalendarConstants.OK_MESSAGE : CalendarConstants.ERROR_MESSAGE, result);
-    } catch (CalendarException e) {
-      LOG.error("Some error occurred", e);
-      response = new RegisterUserResponse(e.getMessage(), false);
-    } catch (Exception e) {
-      LOG.error("Some error occurred", e);
-      response = new RegisterUserResponse(CalendarConstants.ERROR_MESSAGE, false);
-    }
-    return response;
+  public Mono<RegisterUserResponse> registerUser(@RequestBody RegisterUserRequest request) {
+    RegisterUserResponse resp = new RegisterUserResponse(CalendarConstants.ERROR_MESSAGE,
+        false);
+    return calendarService
+        .registerUser(request.getEmail(), request.getPassword(), request.getName())
+        .map(result -> {
+          if (result) {
+            resp.setUserRegistered(true);
+            resp.setMessage(CalendarConstants.OK_MESSAGE);
+          }
+          return resp;
+        }).onErrorResume(CalendarException.class, error -> {
+          resp.setMessage(error.getMessage());
+          return Mono.just(resp);
+        }).onErrorResume(Exception.class, error -> Mono.just(resp));
   }
 
   /**
@@ -62,26 +63,24 @@ public class RegistrationController {
    * authenticating future requests.
    */
   @PostMapping("/login")
-  public LoginUserResponse loginUser(@RequestBody UserRequest request) {
-    LoginUserResponse response = null;
-    try {
-      Integer id = calendarService
-          .isValidUser(request.getEmail(), request.getPassword());
-      if (id != null) {
-        String session = sessionService.createSession(id);
-        response = new LoginUserResponse(
-            session, CalendarConstants.OK_MESSAGE);
-      } else {
-        response = new LoginUserResponse(null, CalendarConstants.FAILED);
-      }
-    } catch (CalendarException e) {
-      LOG.error("Some error occurred", e);
-      response = new LoginUserResponse(null, e.getMessage());
-    } catch (Exception e) {
-      LOG.error("Some error occurred", e);
-      response = new LoginUserResponse(null, CalendarConstants.ERROR_MESSAGE);
-    }
-    return response;
+  public Mono<LoginUserResponse> loginUser(@RequestBody UserRequest request) {
+    LoginUserResponse response = new LoginUserResponse(null, CalendarConstants.FAILED);
+    return calendarService
+        .isValidUser(request.getEmail(), request.getPassword())
+        .flatMap(userId -> sessionService.createSession(userId)
+            .map(id -> {
+              response.setSessionId(id);
+              response.setMessage(CalendarConstants.OK_MESSAGE);
+              return response;
+            }))
+        .onErrorResume(CalendarException.class, error -> {
+          response.setMessage(error.getMessage());
+          return Mono.just(response);
+        })
+        .onErrorResume(Exception.class, error -> {
+          LOG.error(error);
+          return Mono.just(response);
+        });
   }
 
 }
