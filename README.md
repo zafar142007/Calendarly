@@ -232,4 +232,8 @@ how they want the context to be used. In Vertx, it was quite straightforward to 
 It is important therefore to log as much as possible.
 
 6. Also the functional way of writing code in Webflux is much advanced and useful than the annotations way.
-So always use the functional handlers etc.
+So always use the functional handlers/routers etc.
+
+7. Webflux does indeed bring clarity to code. By removing traditional exception handling, and adding fluent
+calls it makes code easier to understand. Although the chances of errors also increase because of the opaqueness
+ of reactive types, I think performance should be the ultimate factor in deciding  whether to use Webflux.
