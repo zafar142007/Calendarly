@@ -2,9 +2,11 @@ package com.zafar.calendarly.config;
 
 import static org.springframework.web.reactive.function.server.RequestPredicates.path;
 
+import com.zafar.calendarly.domain.response.CalendarResponse;
 import com.zafar.calendarly.filter.AuthFilter;
 import com.zafar.calendarly.handler.SlotHandler;
 import com.zafar.calendarly.handler.UserHandler;
+import com.zafar.calendarly.util.CalendarConstants;
 import io.r2dbc.spi.ConnectionFactory;
 import java.util.concurrent.Executors;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
@@ -20,6 +22,7 @@ import org.springframework.data.r2dbc.connectionfactory.init.ConnectionFactoryIn
 import org.springframework.data.r2dbc.connectionfactory.init.ResourceDatabasePopulator;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -37,6 +40,14 @@ import reactor.core.scheduler.Schedulers;
 public class AppConfig {
 
   public static final Logger LOG = LogManager.getLogger(AppConfig.class);
+
+  @Bean
+  public RouterFunction<ServerResponse> metaRoutes() {
+    return RouterFunctions.route(path("/calendarly/health"),
+        request -> ServerResponse.ok().body(BodyInserters.fromValue(new CalendarResponse(
+            CalendarConstants.OK_MESSAGE)))
+    );
+  }
 
   @Bean
   public RouterFunction<ServerResponse> registrationRoutes(@Autowired UserHandler userHandler) {

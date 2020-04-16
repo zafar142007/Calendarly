@@ -9,11 +9,14 @@ import com.zafar.calendarly.exception.CalendarException;
 import com.zafar.calendarly.service.InMemorySessionProvider.Session;
 import com.zafar.calendarly.service.SlotsService;
 import com.zafar.calendarly.util.CalendarConstants;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -32,6 +35,10 @@ public class SlotHandler {
 
   @Autowired
   private SlotsService slotsService;
+
+  @Value("${timeout.ms}")
+  private long timeoutMs;
+
 
   public Mono<ServerResponse> getSlots(ServerRequest serverRequest) {
     return process(slotsService
@@ -72,7 +79,9 @@ public class SlotHandler {
           LOG.error(error);
           return ServerResponse.ok().body(
               BodyInserters.fromValue(new CalendarResponse(CalendarConstants.FAILED)));
-        });
+        }).timeout(Duration.ofMillis(timeoutMs),
+            ServerResponse.status(HttpStatus.GATEWAY_TIMEOUT).body(
+                BodyInserters.fromValue(new CalendarResponse(CalendarConstants.TIMEOUT_MESSAGE))));
 
   }
 

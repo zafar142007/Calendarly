@@ -18,4 +18,5 @@ public interface CalendarConstants {
   String FAILED = "Failure";
   String SESSION_ID_HEADER_NAME = "session-id";
   String DB_ROW_LOCK_TIMEOUT_MS = "${application.db.row.lock.timeout.ms}";
+  String TIMEOUT_MESSAGE = "Timeout";
 }

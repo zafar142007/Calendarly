@@ -6,6 +6,7 @@ import com.zafar.calendarly.domain.Slot;
 import com.zafar.calendarly.domain.request.BookSlotsRequest;
 import com.zafar.calendarly.domain.request.GetSlotRequest;
 import com.zafar.calendarly.domain.request.SlotsRequest;
+import com.zafar.calendarly.exception.CalendarException;
 import com.zafar.calendarly.service.InMemorySessionProvider.Session;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -97,7 +98,12 @@ public class SlotsServiceImpl implements SlotsService {
         slotsRequestMono, (session, request) -> {
           Integer userId = session.getUserId();
           return userRepository.findByEmail(request.getEmailAddressBookee())
-              .single().flux().flatMap(user -> {
+              .single()
+              .onErrorResume(error -> {
+                LOG.error(error);
+                return Mono.error(new CalendarException("No user found"));
+              })
+              .flux().flatMap(user -> {
                 return slotRepository.bookFreeSlots(userId,
                     Arrays.stream(request.getSlots())
                         .map(slot -> LocalDateTime.ofInstant(slot, ZoneId.of("UTC")))

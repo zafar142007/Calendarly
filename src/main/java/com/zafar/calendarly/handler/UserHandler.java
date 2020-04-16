@@ -4,16 +4,21 @@ import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
 import com.zafar.calendarly.domain.request.RegisterUserRequest;
 import com.zafar.calendarly.domain.request.UserRequest;
+import com.zafar.calendarly.domain.response.CalendarResponse;
 import com.zafar.calendarly.domain.response.LoginUserResponse;
 import com.zafar.calendarly.domain.response.RegisterUserResponse;
 import com.zafar.calendarly.exception.CalendarException;
 import com.zafar.calendarly.service.SessionService;
 import com.zafar.calendarly.service.UserService;
 import com.zafar.calendarly.util.CalendarConstants;
+import java.time.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -25,6 +30,9 @@ import reactor.core.publisher.Mono;
 public class UserHandler {
 
   public static final Logger LOG = LogManager.getLogger(UserHandler.class);
+
+  @Value("${timeout.ms}")
+  private long timeoutMs;
 
   @Autowired
   private UserService calendarService;
@@ -54,7 +62,10 @@ public class UserHandler {
           return Mono.just(resp);
         }).onErrorResume(Exception.class, error -> Mono.just(resp))
         .flatMap(registerUserResponse ->
-            ServerResponse.ok().body(fromValue(registerUserResponse)));
+            ServerResponse.ok().body(fromValue(registerUserResponse)))
+        .timeout(Duration.ofMillis(timeoutMs),
+            ServerResponse.status(HttpStatus.GATEWAY_TIMEOUT).body(
+                BodyInserters.fromValue(new CalendarResponse(CalendarConstants.TIMEOUT_MESSAGE))));
   }
 
   /**
@@ -81,7 +92,9 @@ public class UserHandler {
           return Mono.just(response);
         }).flatMap(loginUserResponse ->
             ServerResponse.ok().body(fromValue(loginUserResponse))
-        );
+        ).timeout(Duration.ofMillis(timeoutMs),
+            ServerResponse.status(HttpStatus.GATEWAY_TIMEOUT).body(
+                BodyInserters.fromValue(new CalendarResponse(CalendarConstants.TIMEOUT_MESSAGE))));
   }
 
 

@@ -9,15 +9,14 @@ Functional tests and APIs are written as a part of the following Postman collect
 
 This app is currently running at Heroku [here](https://calendarly-app.herokuapp.com/calendarly/health).
 
-It is assumed that the slots are hourly in length. The database model is in data.sql which is executed during startup.
+It is assumed that the slots are hourly in length. The database model is in schema.sql which is executed during startup.
 
 Features:
 
 1. Uses an in-memory session implementation.
 2. Uses in-memory H2 database.
 3. Runs on Spring Boot.
-4. Uses JPA for database and transaction management.
-5. Unit test coverage of 90%.
+4. Uses Spring Data R2DBC (reactive RDBMS driver) for database management.
 
 Data flow diagram
 -----------------
@@ -84,7 +83,7 @@ Response:
 
 3. Add slots
 
-We provide the session id got in the login step as a header, and a list of timestamps representing the starts of available slots that we want to add for the logged-in user. If authenticated and not in the past, the slots are added as 'available' for the user.
+We provide the session id got in the login step as a header, and a list of timestamps representing the starts of available slots that we want to add for the logged-in user. If authenticated and not in the past, the slots are added as 'available' for the user. If a booked slot already exists which is also in the requested one, the slot will remain booked.
 
 ```
 curl --location --request POST 'https://calendarly-app.herokuapp.com/calendarly/slot/add' \
@@ -93,7 +92,7 @@ curl --location --request POST 'https://calendarly-app.herokuapp.com/calendarly/
 --data-raw '{
 	"version":1.0,
 	"timestamp": "2020-04-02@15:30:00.000+0530",
-	"slots":[
+	"result":[
 		"2020-05-02@11:00:00.000+0530",
 		"2020-05-02@12:00:00.000+0530",
 		"2020-05-02@19:00:00.000+0530"
@@ -158,7 +157,7 @@ curl --location --request POST 'https://calendarly-app.herokuapp.com/calendarly/
 	"version":1.0,
 	"timestamp": "2020-04-02@15:30:00.000+0530",
 	"emailAddressBookee": "zafar142007@google.com",
-	"slots":[
+	"result":[
 		"2020-05-02@11:00:00.000+0000",
 		"2020-05-02@12:00:00.000+0000",
 		"2020-05-02@20:00:00.000+0530"
@@ -173,11 +172,10 @@ Response:
     "timestamp": "2020-04-04@20:23:53.952+0000",
     "version": 1.0,
     "message": "Success",
-    "result": {
-        "2020-05-02T11:00:00Z": true,
-        "2020-05-02T12:00:00Z": true,
-        "2020-05-02T20:00:00Z": false
-    }
+    "result": [
+        "2020-05-02T11:00:00Z",
+        "2020-05-02T12:00:00Z"
+    ]
 }
 ```
 
@@ -203,3 +201,35 @@ Build
 ------
 
 You can build the project by 'mvn clean install' locally. Run it using java -jar target/calendarly-1.0.jar
+
+Notes
+------
+
+1. R2DBC (the reactive driver for RDBMSs) is still in its nascent stage. It does not support a lot of
+features that we take for granted in other drivers. I have not implemented the transactions and locking
+that the booking API here requires (and which is present in the non-reactive version of this code).
+
+2. There could be further optimizations done here where we could represent even the inner classes of the
+incoming request objects as reactive types. I haven't done that yet, but for a truly reactive application
+I think it is important to not let any flow 'cache' data. Instead every function should take reactive inputs
+and give reactive outputs.
+
+3. We should take care that there are no breaks in the chain of input and output of a reactive function.
+One of the core insights I learnt in this implementation is that the client which is calling the
+webservice is the ultimate subscriber to the reactive flows in our code. The client is supplying data
+in a reactive request object which is then mapped to in our code via various transformations to other reactive types,
+and finally returned as a reactive type to our client, who is again pulling (or subscribing) this data from the server
+back towards it. So while these transformations are occurring in our code, there shouldn't be any new
+reactive types created that are left unsubscribed. This was a frequent issue that is hard to debug as your
+client will just keep on waiting and you won't know where your chain broke from the logs.
+
+4. Spring webflux is not a very mature framework as of now. I struggled for a while to figure out the ways
+to implement filters and context propagation. Compared to Vertx, Spring should make it more understandable
+how they want the context to be used. In Vertx, it was quite straightforward to use the context to store
+ things like session ids.
+
+5. Debugging is a pain in the webflux reactive world. The data is hidden, and you cannot see the values of your variables.
+It is important therefore to log as much as possible.
+
+6. Also the functional way of writing code in Webflux is much advanced and useful than the annotations way.
+So always use the functional handlers etc.
