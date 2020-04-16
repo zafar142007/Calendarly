@@ -14,9 +14,4 @@ import reactor.core.publisher.Flux;
  * @author Zafar Ansari
  */
 public interface SlotRepository extends ReactiveCrudRepository<Slot, SlotId>, SlotRepositoryCustom {
-
-  @Query("select SLOT_OWNER_ID, SLOT_START from slot where SLOT_BOOKED_BY = null "
-      + "and SLOT_START>=sysdate and SLOT_OWNER_ID = :owner and SLOT_START>:start and SLOT_START<:end")
-  Flux<Slot> getAvailableSlots(Integer owner, ZonedDateTime start, ZonedDateTime end);
-
 }

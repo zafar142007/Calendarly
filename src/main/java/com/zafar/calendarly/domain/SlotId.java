@@ -1,6 +1,7 @@
 package com.zafar.calendarly.domain;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
 
@@ -13,18 +14,18 @@ public class SlotId implements Serializable {
 
   private Integer slotOwnerId;
 
-  private ZonedDateTime slotStartTimestamp;
+  private LocalDateTime slotStartTimestamp;
 
   public SlotId() {
   }
 
-  public SlotId(Integer slotOwnerId, ZonedDateTime slotStartTimestamp) {
+  public SlotId(Integer slotOwnerId, LocalDateTime slotStartTimestamp) {
     this.slotOwnerId = slotOwnerId;
     this.slotStartTimestamp = slotStartTimestamp;
   }
 
 
-  public SlotId(User slotOwnerId, ZonedDateTime slotStartTimestamp) {
+  public SlotId(User slotOwnerId, LocalDateTime slotStartTimestamp) {
     this.slotOwnerId = slotOwnerId.getId();
     this.slotStartTimestamp = slotStartTimestamp;
   }
@@ -37,11 +38,11 @@ public class SlotId implements Serializable {
     this.slotOwnerId = slotOwnerId;
   }
 
-  public ZonedDateTime getSlotStartTimestamp() {
+  public LocalDateTime getSlotStartTimestamp() {
     return slotStartTimestamp;
   }
 
-  public void setSlotStartTimestamp(ZonedDateTime slotStartTimestamp) {
+  public void setSlotStartTimestamp(LocalDateTime slotStartTimestamp) {
     this.slotStartTimestamp = slotStartTimestamp;
   }
 

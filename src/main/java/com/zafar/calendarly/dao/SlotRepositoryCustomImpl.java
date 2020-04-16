@@ -1,10 +1,13 @@
 package com.zafar.calendarly.dao;
 
 import com.zafar.calendarly.domain.Slot;
+import com.zafar.calendarly.domain.User;
 import com.zafar.calendarly.exception.CalendarException;
 import com.zafar.calendarly.util.CalendarConstants;
 import java.time.Instant;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,11 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.r2dbc.core.DatabaseClient;
-import org.springframework.data.r2dbc.mapping.SettableValue;
-import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.DirectProcessor;
+import org.springframework.data.relational.core.query.Criteria;
+import org.springframework.data.relational.core.query.Update;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxProcessor;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 
 
@@ -40,38 +42,42 @@ public class SlotRepositoryCustomImpl implements SlotRepositoryCustom {
   @Autowired
   private DatabaseClient databaseClient;
 
-  @Transactional
   @Override
-  public Flux<Instant> bookFreeSlots(Integer bookerId, Set<ZonedDateTime> requestedSlots,
-      int bookeeId) {
-    FluxProcessor bookedSlots = DirectProcessor.create().serialize();
-
-    databaseClient.execute(
-        "select from Slot where SLOT_OWNER_ID = :owner "
-            + "and SLOT_BOOKED_BY = null and SLOT_START>=sysdate and"
-            + " SLOT_START in (:requestedSlots)")
-        .bind("owner", bookeeId)
-        .bind("requestedSlots", requestedSlots)
-        .as(Slot.class)
-        .fetch()
-        .all().subscribeOn(worker).handle((slot, sink) -> {
-      slot.setSlotBookerId(bookerId);
-      databaseClient.update()
-          .table(Slot.class)
-          .using(slot)
-          .fetch().rowsUpdated().handle((rows, s) -> {
-        if (rows != 1) {
-          LOG.error("error while booking a slot");
-          s.error(new CalendarException("Could not update the slot"));
-        } else {
-          bookedSlots.sink().next(slot.getSlotStartTimestamp().toInstant());
-        }
-      }).doOnError(error -> {
-        LOG.error("error while booking a particular slot", error);
-        sink.error(error);
-      });
-    });
-    return bookedSlots;
+  public Flux<Instant> bookFreeSlots(Integer bookerId, Set<LocalDateTime> requestedSlots,
+      User bookee) {
+    return
+        databaseClient
+            .select()
+            .from(Slot.class)
+            .matching(Criteria.where("SLOT_OWNER_ID").is(bookee.getId())
+                .and("SLOT_BOOKED_BY").isNull()
+                .and("SLOT_START").greaterThanOrEquals(LocalDateTime.ofInstant(Instant.now(),
+                    ZoneId.of("UTC")))
+                .and("SLOT_START").in(requestedSlots))
+            .as(Slot.class)
+            .all()
+            .subscribeOn(worker)
+            .flatMap((slot) -> {
+              slot.setSlotBookerId(bookerId);
+              return databaseClient.update()
+                  .table("slot")
+                  .using(Update.update("SLOT_BOOKED_BY", bookerId))
+                  .matching(Criteria.where("SLOT_OWNER_ID").is(slot.getSlotOwnerId())
+                      .and("SLOT_START").is(slot.getSlotStartTimestamp()))
+                  .fetch().rowsUpdated()
+                  .flatMap((rows) -> {
+                    if (rows != 1) {
+                      LOG.error("error while booking a slot");
+                      return Mono.error(new CalendarException(CalendarConstants.FAILED));
+                    } else {
+                      return Mono.just(slot.getSlotStartTimestamp().toInstant(ZoneOffset.UTC));
+                    }
+                  })
+                  .onErrorResume(Exception.class, error -> {
+                    LOG.error(error);
+                    return Mono.empty();
+                  });
+            });
   }
 
   @Override
@@ -79,25 +85,39 @@ public class SlotRepositoryCustomImpl implements SlotRepositoryCustom {
     return
         slots.flatMap(slot -> {
           return databaseClient
-              .execute(
-                  "merge into SLOT (SLOT_OWNER_ID, SLOT_START, SLOT_BOOKED_BY) "
-                      + "KEY(SLOT_OWNER_ID, SLOT_START) values (:owner, :slot, :booker)")
-              .bind("owner", slot.getSlotOwnerId())
-              .bind("slot", slot.getSlotStartTimestamp())
-              .bind("booker", SettableValue.fromOrEmpty(null, Integer.class))
+              .insert()
+              .into(Slot.class)
+              .using(slot)
               .fetch()
-              .all()
+              .rowsUpdated()
               .subscribeOn(worker)
+              .filter(i -> i == 1)
               .onErrorResume(error -> {
                 LOG.error(error);
-                return Flux.empty();
+                return Mono.empty();
               })
-              .handle((sl, sin) -> {
-                LOG.info("done");
+              .flatMap((rowsUpdated) -> {
+                LOG.info("done for {} row", rowsUpdated);
+                return Mono.just(slot);
               });
         });
 
   }
 
+  @Override
+  public Flux<Slot> getAvailableSlots(Integer owner, LocalDateTime start, LocalDateTime end) {
+    return databaseClient
+        .select()
+        .from(Slot.class)
+        .matching(Criteria.where("SLOT_OWNER_ID").is(owner)
+            .and("SLOT_BOOKED_BY").isNull()
+            .and("SLOT_START").greaterThanOrEquals(LocalDateTime.ofInstant(Instant.now(),
+                ZoneId.of("UTC")))
+            .and("SLOT_START").greaterThanOrEquals(start)
+            .and("SLOT_START").lessThanOrEquals(end))
+        .as(Slot.class)
+        .all()
+        .subscribeOn(worker);
+  }
 
 }

@@ -8,8 +8,9 @@ import com.zafar.calendarly.domain.request.GetSlotRequest;
 import com.zafar.calendarly.domain.request.SlotsRequest;
 import com.zafar.calendarly.service.InMemorySessionProvider.Session;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.Collectors;
@@ -57,7 +58,7 @@ public class SlotsServiceImpl implements SlotsService {
           Flux<Slot> slots = Flux.create(sink -> {
             for (Instant slot : request.getSlots()) {
               if (validationService.isInFuture(slot)) {
-                sink.next(new Slot(userId, ZonedDateTime.ofInstant(slot, ZoneId.of("UTC")), null));
+                sink.next(new Slot(userId, LocalDateTime.ofInstant(slot, ZoneId.of("UTC")), null));
               } else {
                 LOG.warn("Ignoring slot {} in past", slot);
               }
@@ -66,7 +67,8 @@ public class SlotsServiceImpl implements SlotsService {
           });
 
           return slotRepository.saveAllSlots(slots).map(
-              slot -> (new Date(slot.getSlotStartTimestamp().toInstant().toEpochMilli())));
+              slot -> (new Date(
+                  slot.getSlotStartTimestamp().toInstant(ZoneOffset.UTC).toEpochMilli())));
         })
         .subscribeOn(worker)
         .flatMap(dateFlux -> dateFlux.map(date -> date));
@@ -76,19 +78,16 @@ public class SlotsServiceImpl implements SlotsService {
   @Override
   public Flux<Date> getSlots(Mono<GetSlotRequest> slotsRequestMono,
       Mono<Session> sess) {
-    return Flux.zip(sess, slotsRequestMono,
-        (session, request) -> {
-          Integer userId = session.getUserId();
-          Flux<Slot> slotsFlux = slotRepository.getAvailableSlots(userId,
-              ZonedDateTime.ofInstant(request.getFromTime().toInstant(),
-                  ZoneId.of("UTC")),
-              ZonedDateTime.ofInstant(request.getToTime().toInstant(),
-                  ZoneId.of("UTC")));
-          return slotsFlux
-              .map(slot -> new Date(slot.getSlotStartTimestamp().toInstant().toEpochMilli()));
-        }).subscribeOn(worker)
-        .flatMap(dateFlux -> dateFlux.map(date -> date));
+    return Flux.zip(sess, slotsRequestMono, (session, request) -> {
 
+      return slotRepository.getAvailableSlots(session.getUserId(),
+          LocalDateTime.ofInstant(request.getFromTime().toInstant(),
+              ZoneId.of("UTC")),
+          LocalDateTime.ofInstant(request.getToTime().toInstant(),
+              ZoneId.of("UTC"))).map(slot ->
+          new Date(slot.getSlotStartTimestamp().toInstant(ZoneOffset.UTC).toEpochMilli()));
+
+    }).subscribeOn(worker).flatMap(dateFlux -> dateFlux);
   }
 
   @Override
@@ -98,15 +97,21 @@ public class SlotsServiceImpl implements SlotsService {
         slotsRequestMono, (session, request) -> {
           Integer userId = session.getUserId();
           return userRepository.findByEmail(request.getEmailAddressBookee())
-              .single().flux().flatMap(user -> slotRepository
-                  .bookFreeSlots(userId,
-                      Arrays.stream(request.getSlots())
-                          .map(slot -> ZonedDateTime.ofInstant(slot, ZoneId.of("UTC")))
-                          .collect(Collectors.toSet()),
-                      user.getId()));
+              .single().flux().flatMap(user -> {
+                return slotRepository.bookFreeSlots(userId,
+                    Arrays.stream(request.getSlots())
+                        .map(slot -> LocalDateTime.ofInstant(slot, ZoneId.of("UTC")))
+                        .collect(Collectors.toSet())
+                    , user)
+                    .onErrorResume(error -> {
+                      LOG.error(error);
+                      return Flux.empty();
+                    });
+              });
         })
         .subscribeOn(worker)
-        .flatMap(instants -> instants.map(instant -> new Date(instant.toEpochMilli())));
+        .flatMap(instants -> instants
+            .map(instant -> new Date(instant.toEpochMilli())));
   }
 
 }
