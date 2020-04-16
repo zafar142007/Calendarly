@@ -1,6 +1,9 @@
 package com.zafar.calendarly.dao;
 
+import com.zafar.calendarly.domain.Slot;
 import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Set;
 import reactor.core.publisher.Flux;
 
@@ -12,6 +15,9 @@ import reactor.core.publisher.Flux;
  */
 public interface SlotRepositoryCustom {
 
-  Flux<Instant> bookFreeSlots(Integer bookerId, Set<Instant> requestedSlots, int bookeeId);
+  Flux<Instant> bookFreeSlots(Integer bookerId, Set<ZonedDateTime> requestedSlots, int bookeeId);
+
+  Flux<Slot> saveAllSlots(Flux<Slot> slots);
+
 
 }

@@ -1,10 +1,12 @@
 package com.zafar.calendarly.service;
 
+import com.zafar.calendarly.exception.CalendarException;
 import com.zafar.calendarly.util.CalendarConstants;
 import com.zafar.calendarly.util.PasswordUtil;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,27 +42,38 @@ public class InMemorySessionProvider implements SessionProvider {
   private Scheduler worker;
 
   @Override
-  public Mono<String> newSession(Integer id) {
+  public Mono<String> newSession(Mono<Integer> id) {
     Mono<String> session = passwordUtil.getNewRandomString(CalendarConstants.SESSION_ID_LENGTH);
-    long time = System.currentTimeMillis();
-    session.subscribeOn(worker).handle((sessionId, sink) -> {
+    final long time = System.currentTimeMillis();
+    return Mono.zip(session, id, (sessionId, userId) -> {
       monitor.readLock().lock();
-      sessionStore.put(sessionId, new Session(time, id));
+      sessionStore.put(sessionId, new Session(time, userId));
       monitor.readLock().unlock();
+      return sessionId;
     });
-    return session;
   }
 
   @Override
-  public Session getSession(String sessionId) {
-    monitor.readLock().lock();
-    Session session = sessionStore.get(sessionId);
-    if (session != null && isExpired(session.getTimestamp())) {
-      sessionStore.remove(sessionId);
-      session = null;
-    }
-    monitor.readLock().unlock();
-    return session;
+  public Mono<Session> getSession(String sessionId) {
+
+    return Mono.just(sessionId).flatMap(id -> {
+      if (StringUtils.isEmpty(id)) {
+        return Mono.error(new CalendarException("session id not provided"));
+      } else {
+        Mono<Session> result = null;
+        monitor.readLock().lock();
+        Session session = sessionStore.get(sessionId);
+        if (session != null && isExpired(session.getTimestamp()) || session == null) {
+          sessionStore.remove(sessionId);
+          result = Mono.empty();
+        } else if (session != null) {
+          result = Mono.just(session);
+        }
+        monitor.readLock().unlock();
+        return result;
+      }
+    }).subscribeOn(worker);
+
   }
 
   private boolean isExpired(long time) {

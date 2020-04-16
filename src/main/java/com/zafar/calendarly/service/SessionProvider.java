@@ -16,7 +16,7 @@ public interface SessionProvider {
    * @param id associate the generated Session object with the userId provided
    * @return session id
    */
-  Mono<String> newSession(Integer id);
+  Mono<String> newSession(Mono<Integer> id);
 
   /**
    * Check if the provided session is valid. If yes, return the Session object else null.
@@ -24,6 +24,6 @@ public interface SessionProvider {
    * @param session session id in question
    * @return Session object
    */
-  Session getSession(String session);
+  Mono<Session> getSession(String session);
 
 }

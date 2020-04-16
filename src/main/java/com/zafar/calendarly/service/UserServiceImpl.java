@@ -2,6 +2,8 @@ package com.zafar.calendarly.service;
 
 import com.zafar.calendarly.dao.UserRepository;
 import com.zafar.calendarly.domain.User;
+import com.zafar.calendarly.domain.request.RegisterUserRequest;
+import com.zafar.calendarly.domain.request.UserRequest;
 import com.zafar.calendarly.exception.CalendarException;
 import com.zafar.calendarly.util.CalendarConstants;
 import com.zafar.calendarly.util.PasswordUtil;
@@ -29,30 +31,41 @@ public class UserServiceImpl implements UserService {
   @Autowired
   private PasswordUtil passwordUtil;
 
-  public Mono<Boolean> registerUser(String userEmail, String password, String userName) {
+  public Mono<Boolean> registerUser(Mono<RegisterUserRequest> request) {
+
     return passwordUtil.getNewRandomString(CalendarConstants.SALT_LENGTH)
-        .flatMap(salt -> passwordUtil.getHashedSaltedPassword(password, salt)
-            .map((pass -> new SimpleEntry<>(pass, salt))))
+        .zipWith(request)
+        .flatMap(tuple ->
+            passwordUtil
+                .getHashedSaltedPassword(tuple.getT2().getPassword(), tuple.getT1())
+                .zipWith(Mono.just(tuple))
+        )
         .flatMap(tuple -> userRepository
-            .save(new User(userEmail, userName, tuple.getKey(), tuple.getValue())))
+            .save(new User(tuple.getT2().getT2().getEmail(), tuple.getT2().getT2().getName(),
+                tuple.getT1(), tuple.getT2().getT1())))
         .map(user -> user.getId() != null)
         .onErrorMap(error -> new CalendarException("User exists, try another input.", error));
   }
 
-  public Mono<Integer> isValidUser(String userEmail, String password) {
-    return userRepository.findByEmail(userEmail)
-        .single()
-        .flatMap(user -> {
-          String storedPassword = String.valueOf(user.getHashedPassword());
-          return passwordUtil.getHashedSaltedPassword(password, user.getSalt())
-              .flatMap((hashedSaltedPassword) -> {
-                if (!hashedSaltedPassword.equals(storedPassword)) {
-                  return Mono.error(new CalendarException("Password does not match."));
-                } else {
-                  return Mono.just(user.getId());
-                }
-              });
-        });
+  public Mono<Integer> isValidUser(Mono<UserRequest> request) {
+    return request
+        .flatMap(userRequest -> userRepository.findByEmail(userRequest.getEmail())
+            .single()
+            .onErrorResume(error -> Mono.error(new CalendarException("User does not exist.")))
+            .map(user -> new SimpleEntry<>(user, userRequest))
+            .flatMap(entry -> {
+              String storedPassword = String.valueOf(entry.getKey().getHashedPassword());
+              return passwordUtil
+                  .getHashedSaltedPassword(entry.getValue().getPassword(), entry.getKey().getSalt())
+                  .handle((hashedSaltedPassword, sink) -> {
+                    if (!hashedSaltedPassword.equals(storedPassword)) {
+                      sink.error(new CalendarException("Password does not match."));
+                    } else {
+                      sink.next(entry.getKey().getId());
+                    }
+                  });
+            })
+        );
   }
 
 }

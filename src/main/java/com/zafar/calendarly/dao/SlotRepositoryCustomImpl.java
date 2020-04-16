@@ -4,6 +4,7 @@ import com.zafar.calendarly.domain.Slot;
 import com.zafar.calendarly.exception.CalendarException;
 import com.zafar.calendarly.util.CalendarConstants;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.r2dbc.core.DatabaseClient;
+import org.springframework.data.r2dbc.mapping.SettableValue;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;
@@ -40,14 +42,14 @@ public class SlotRepositoryCustomImpl implements SlotRepositoryCustom {
 
   @Transactional
   @Override
-  public Flux<Instant> bookFreeSlots(Integer bookerId, Set<Instant> requestedSlots,
+  public Flux<Instant> bookFreeSlots(Integer bookerId, Set<ZonedDateTime> requestedSlots,
       int bookeeId) {
     FluxProcessor bookedSlots = DirectProcessor.create().serialize();
 
     databaseClient.execute(
-        "select s from Slot s where s.slotOwnerId = :owner "
-            + "and s.slotBookerId = null and s.slotStartTimestamp>=sysdate and"
-            + " s.slotStartTimestamp in (:requestedSlots)")
+        "select from Slot where SLOT_OWNER_ID = :owner "
+            + "and SLOT_BOOKED_BY = null and SLOT_START>=sysdate and"
+            + " SLOT_START in (:requestedSlots)")
         .bind("owner", bookeeId)
         .bind("requestedSlots", requestedSlots)
         .as(Slot.class)
@@ -70,6 +72,31 @@ public class SlotRepositoryCustomImpl implements SlotRepositoryCustom {
       });
     });
     return bookedSlots;
+  }
+
+  @Override
+  public Flux<Slot> saveAllSlots(Flux<Slot> slots) {
+    return
+        slots.flatMap(slot -> {
+          return databaseClient
+              .execute(
+                  "merge into SLOT (SLOT_OWNER_ID, SLOT_START, SLOT_BOOKED_BY) "
+                      + "KEY(SLOT_OWNER_ID, SLOT_START) values (:owner, :slot, :booker)")
+              .bind("owner", slot.getSlotOwnerId())
+              .bind("slot", slot.getSlotStartTimestamp())
+              .bind("booker", SettableValue.fromOrEmpty(null, Integer.class))
+              .fetch()
+              .all()
+              .subscribeOn(worker)
+              .onErrorResume(error -> {
+                LOG.error(error);
+                return Flux.empty();
+              })
+              .handle((sl, sin) -> {
+                LOG.info("done");
+              });
+        });
+
   }
 
 

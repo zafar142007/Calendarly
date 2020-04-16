@@ -1,11 +1,12 @@
 package com.zafar.calendarly.service;
 
-import com.zafar.calendarly.exception.CalendarException;
-import java.time.Instant;
+import com.zafar.calendarly.domain.request.BookSlotsRequest;
+import com.zafar.calendarly.domain.request.GetSlotRequest;
+import com.zafar.calendarly.domain.request.SlotsRequest;
+import com.zafar.calendarly.service.InMemorySessionProvider.Session;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Service to manipulate slot resource
@@ -19,22 +20,22 @@ public interface SlotsService {
    *
    * @param slots slots available
    */
-  void addSlots(Instant[] slots) throws CalendarException;
+  Flux<Date> addSlots(Mono<SlotsRequest> slots,
+      Mono<Session> sess);
 
   /**
    * Book slots for the logged-in user in the calendar of the @param emailBookee user if available
    *
-   * @param slots slots requested
-   * @param emailBookee userId of the user whose slots are requested
    * @return a map indicating which slots were successfully booked, and not booked
    */
-  Map<Instant, Boolean> bookSlots(Instant[] slots, String emailBookee) throws CalendarException;
+  Flux<Date> bookSlots(Mono<BookSlotsRequest> bookSlotsRequestMono,
+      Mono<Session> sess);
 
   /**
    * Get available slots of the given user between the provided times
    *
    * @return list of available slots
    */
-  List<Date> getSlots(String email, Instant from, Instant to)
-      throws CalendarException;
+  Flux<Date> getSlots(Mono<GetSlotRequest> slots,
+      Mono<Session> sess);
 }

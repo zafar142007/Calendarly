@@ -1,29 +1,30 @@
 package com.zafar.calendarly.domain;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 
 
 /**
  * Composite key for Slot
+ *
  * @author Zafar Ansari
  */
 public class SlotId implements Serializable {
 
   private Integer slotOwnerId;
 
-  private Timestamp slotStartTimestamp;
+  private ZonedDateTime slotStartTimestamp;
 
   public SlotId() {
   }
 
-  public SlotId(Integer slotOwnerId, Timestamp slotStartTimestamp) {
+  public SlotId(Integer slotOwnerId, ZonedDateTime slotStartTimestamp) {
     this.slotOwnerId = slotOwnerId;
     this.slotStartTimestamp = slotStartTimestamp;
   }
 
 
-  public SlotId(User slotOwnerId, Timestamp slotStartTimestamp) {
+  public SlotId(User slotOwnerId, ZonedDateTime slotStartTimestamp) {
     this.slotOwnerId = slotOwnerId.getId();
     this.slotStartTimestamp = slotStartTimestamp;
   }
@@ -36,11 +37,11 @@ public class SlotId implements Serializable {
     this.slotOwnerId = slotOwnerId;
   }
 
-  public Timestamp getSlotStartTimestamp() {
+  public ZonedDateTime getSlotStartTimestamp() {
     return slotStartTimestamp;
   }
 
-  public void setSlotStartTimestamp(Timestamp slotStartTimestamp) {
+  public void setSlotStartTimestamp(ZonedDateTime slotStartTimestamp) {
     this.slotStartTimestamp = slotStartTimestamp;
   }
 

@@ -17,11 +17,11 @@ public class SessionService {
   @Autowired
   private SessionProvider sessionProvider;
 
-  public Mono<String> createSession(Integer id) {
+  public Mono<String> createSession(Mono<Integer> id) {
     return sessionProvider.newSession(id);
   }
 
-  public Session getSession(String sessionId) {
+  public Mono<Session> getSession(String sessionId) {
     return sessionProvider.getSession(sessionId);
   }
 

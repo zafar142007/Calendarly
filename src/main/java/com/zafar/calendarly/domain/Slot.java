@@ -1,7 +1,7 @@
 package com.zafar.calendarly.domain;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 
@@ -20,13 +20,13 @@ public class Slot implements Serializable {
   private Integer slotOwnerId;
 
   @Column("SLOT_START")
-  private Timestamp slotStartTimestamp;
+  private ZonedDateTime slotStartTimestamp;
 
   @Column("SLOT_BOOKED_BY")
   private Integer slotBookerId;
 
 
-  public Slot(Integer slotOwner, Timestamp slotStartTimestamp,
+  public Slot(Integer slotOwner, ZonedDateTime slotStartTimestamp,
       Integer slotBooker) {
     slotOwnerId = slotOwner;
     slotBookerId = slotBooker;
@@ -37,11 +37,11 @@ public class Slot implements Serializable {
   }
 
 
-  public Timestamp getSlotStartTimestamp() {
+  public ZonedDateTime getSlotStartTimestamp() {
     return slotStartTimestamp;
   }
 
-  public void setSlotStartTimestamp(Timestamp slotStartTimestamp) {
+  public void setSlotStartTimestamp(ZonedDateTime slotStartTimestamp) {
     this.slotStartTimestamp = slotStartTimestamp;
   }
 

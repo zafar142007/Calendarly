@@ -1,4 +1,6 @@
-package com.zafar.calendarly.controller;
+package com.zafar.calendarly.handler;
+
+import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
 import com.zafar.calendarly.domain.request.RegisterUserRequest;
 import com.zafar.calendarly.domain.request.UserRequest;
@@ -11,23 +13,18 @@ import com.zafar.calendarly.util.CalendarConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-
 /**
- * Controller to handle operations related to user resource
- *
  * @author Zafar Ansari
  */
-@RestController
-@RequestMapping("/calendarly/user/")
-public class RegistrationController {
+@Component
+public class UserHandler {
 
-  public static final Logger LOG = LogManager.getLogger(RegistrationController.class);
+  public static final Logger LOG = LogManager.getLogger(UserHandler.class);
 
   @Autowired
   private UserService calendarService;
@@ -38,14 +35,14 @@ public class RegistrationController {
   /**
    * Create a new User if not already existing.
    *
-   * @param request the details of the user
+   * @param req the details of the user
    */
-  @PostMapping("/signup")
-  public Mono<RegisterUserResponse> registerUser(@RequestBody RegisterUserRequest request) {
+  public Mono<ServerResponse> registerUser(ServerRequest req) {
+    Mono<RegisterUserRequest> request = req.bodyToMono(RegisterUserRequest.class);
     RegisterUserResponse resp = new RegisterUserResponse(CalendarConstants.ERROR_MESSAGE,
         false);
     return calendarService
-        .registerUser(request.getEmail(), request.getPassword(), request.getName())
+        .registerUser(request)
         .map(result -> {
           if (result) {
             resp.setUserRegistered(true);
@@ -55,19 +52,21 @@ public class RegistrationController {
         }).onErrorResume(CalendarException.class, error -> {
           resp.setMessage(error.getMessage());
           return Mono.just(resp);
-        }).onErrorResume(Exception.class, error -> Mono.just(resp));
+        }).onErrorResume(Exception.class, error -> Mono.just(resp))
+        .flatMap(registerUserResponse ->
+            ServerResponse.ok().body(fromValue(registerUserResponse)));
   }
 
   /**
    * Login a user with the given details. If successful return a session-id to be used for
    * authenticating future requests.
    */
-  @PostMapping("/login")
-  public Mono<LoginUserResponse> loginUser(@RequestBody UserRequest request) {
+  public Mono<ServerResponse> loginUser(ServerRequest req) {
+    Mono<UserRequest> request = req.bodyToMono(UserRequest.class);
     LoginUserResponse response = new LoginUserResponse(null, CalendarConstants.FAILED);
     return calendarService
-        .isValidUser(request.getEmail(), request.getPassword())
-        .flatMap(userId -> sessionService.createSession(userId)
+        .isValidUser(request)
+        .transform(userId -> sessionService.createSession(userId)
             .map(id -> {
               response.setSessionId(id);
               response.setMessage(CalendarConstants.OK_MESSAGE);
@@ -80,7 +79,10 @@ public class RegistrationController {
         .onErrorResume(Exception.class, error -> {
           LOG.error(error);
           return Mono.just(response);
-        });
+        }).flatMap(loginUserResponse ->
+            ServerResponse.ok().body(fromValue(loginUserResponse))
+        );
   }
+
 
 }

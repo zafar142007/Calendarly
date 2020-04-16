@@ -1,9 +1,10 @@
 package com.zafar.calendarly.config;
 
-import com.zafar.calendarly.service.SessionService;
-import io.r2dbc.h2.CloseableConnectionFactory;
-import io.r2dbc.h2.H2ConnectionConfiguration;
-import io.r2dbc.h2.H2ConnectionFactory;
+import static org.springframework.web.reactive.function.server.RequestPredicates.path;
+
+import com.zafar.calendarly.filter.AuthFilter;
+import com.zafar.calendarly.handler.SlotHandler;
+import com.zafar.calendarly.handler.UserHandler;
 import io.r2dbc.spi.ConnectionFactory;
 import java.util.concurrent.Executors;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
@@ -17,12 +18,13 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.r2dbc.connectionfactory.init.CompositeDatabasePopulator;
 import org.springframework.data.r2dbc.connectionfactory.init.ConnectionFactoryInitializer;
 import org.springframework.data.r2dbc.connectionfactory.init.ResourceDatabasePopulator;
-import org.springframework.data.r2dbc.core.DatabaseClient;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.RouterFunctions;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-
 
 /**
  * Spring bean declarations
@@ -36,26 +38,25 @@ public class AppConfig {
 
   public static final Logger LOG = LogManager.getLogger(AppConfig.class);
 
-  @Autowired
-  private SessionService sessionService;
-
-  /**
-   * Authentication is only required for only certain flows. For those flows check for session.
-   */
-/*  @Bean
-  public FilterRegistrationBean<AuthFilter> loggingFilter() {
-    FilterRegistrationBean<AuthFilter> registrationBean = new FilterRegistrationBean<>();
-    registrationBean.setFilter(new AuthFilter(sessionService));
-    registrationBean.addUrlPatterns("/calendarly/slot/*");
-    return registrationBean;
+  @Bean
+  public RouterFunction<ServerResponse> registrationRoutes(@Autowired UserHandler userHandler) {
+    return RouterFunctions.route().nest(path("/calendarly/user"), builder -> {
+      builder.POST("/signup", userHandler::registerUser);
+      builder.POST("/login", userHandler::loginUser);
+    }).build();
   }
-*/
-//  @Bean("r2dbcDatabaseClient")
-//  public DatabaseClient getDatabaseClient() {
-//    H2ConnectionConfiguration config  = H2ConnectionConfiguration.builder().
-//    CloseableConnectionFactory connectionFactory = H2ConnectionFactory.inMemory("testdb");
-//    return null;
-//  }
+
+  @Bean
+  public RouterFunction<ServerResponse> slotRoutes(@Autowired SlotHandler slotHandler,
+      @Autowired AuthFilter authFilter) {
+    return RouterFunctions.route().nest(path("/calendarly/slot"), builder -> {
+      builder.POST("/add", slotHandler::addSlots);
+      builder.POST("/book", slotHandler::bookSlots);
+      builder.POST("/get", slotHandler::getSlots);
+    })
+        .filter(authFilter::filter)
+        .build();
+  }
 
   @Bean
   public ConnectionFactoryInitializer initializer(ConnectionFactory connectionFactory) {

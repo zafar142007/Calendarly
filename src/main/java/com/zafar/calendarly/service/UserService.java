@@ -1,5 +1,7 @@
 package com.zafar.calendarly.service;
 
+import com.zafar.calendarly.domain.request.RegisterUserRequest;
+import com.zafar.calendarly.domain.request.UserRequest;
 import reactor.core.publisher.Mono;
 
 /**
@@ -14,12 +16,12 @@ public interface UserService {
    *
    * @return true if successful, else false
    */
-  Mono<Boolean> registerUser(String userEmail, String password, String userName);
+  Mono<Boolean> registerUser(Mono<RegisterUserRequest> request);
 
   /**
    * Authenticate the user by checking the details provided.
    *
    * @return id of the user if successful, else null
    */
-  Mono<Integer> isValidUser(String userEmail, String password);
+  Mono<Integer> isValidUser(Mono<UserRequest> request);
 }
