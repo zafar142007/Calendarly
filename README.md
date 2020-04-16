@@ -5,9 +5,9 @@ This is a calendar-booking application.
 
 Functional tests and APIs are written as a part of the following Postman collection.
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/5b67adc20c80dff9d781)
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/4ec404bcba46b7d01b4d)
 
-This app is currently running at Heroku [here](https://calendarly-app.herokuapp.com/calendarly/health).
+This app's non-reactive version is currently running at Heroku [here](https://calendarly-app.herokuapp.com/calendarly/health).
 
 It is assumed that the slots are hourly in length. The database model is in schema.sql which is executed during startup.
 
@@ -193,7 +193,7 @@ Response:
 {
     "timestamp": "2020-04-04@20:37:15.236+0000",
     "version": 1.0,
-    "message": "UP"
+    "message": "SUCCESS"
 }
 ```
 
